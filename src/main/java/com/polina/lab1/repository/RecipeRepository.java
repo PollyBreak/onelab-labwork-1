@@ -10,4 +10,5 @@ public interface RecipeRepository {
     RecipeDTO findById(Long recipeId);
     List<RecipeDTO> findAll();
     List<RecipeDTO> findByProducts(List<Long> productIds);
+    public List<RecipeDTO> findByAuthorId(Long authorId);
 }

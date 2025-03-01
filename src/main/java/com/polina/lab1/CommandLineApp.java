@@ -25,6 +25,7 @@ public class CommandLineApp implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        initializeDatabase();
         while (true) {
             System.out.println("------------Recipe App Menu------------");
             System.out.println("Choose ");
@@ -154,4 +155,27 @@ public class CommandLineApp implements CommandLineRunner {
             }
         }
     }
+
+    private void initializeDatabase() {
+        System.out.println("Initializing database with sample users, products, and recipes...");
+
+        userService.saveUser(UserDTO.builder().username("john_doe").email("john@example.com").build());
+        userService.saveUser(UserDTO.builder().username("jane_smith").email("jane@example.com").build());
+        System.out.println("Sample users added.");
+
+        List<UserDTO> users = userService.getAllUsers();
+        List<ProductDTO> products = List.of(
+                ProductDTO.builder().name("Flour").description("flour for baking").build()
+        );
+
+        userService.addRecipe(users.get(0).getId(),
+                RecipeDTO.builder()
+                        .title("Pancakes")
+                        .description("Delicious homemade pancakes")
+                        .instructions("Mix ingredients and cook")
+                        .build(),
+                products);
+
+    }
+
 }

@@ -8,12 +8,14 @@ import com.polina.lab1.repository.RecipeRepository;
 import com.polina.lab1.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional
 public class UserService {
     private final UserRepository userRepository;
     private final RecipeRepository recipeRepository;
@@ -53,43 +55,43 @@ public class UserService {
         userRepository.delete(id);
     }
 
+
     public void addRecipe(Long userId, RecipeDTO recipe, List<ProductDTO> products) {
         UserDTO user = userRepository.findById(userId);
         if (user != null) {
             recipe.setAuthorId(userId);
 
             List<Long> productIds = new ArrayList<>();
-            for (ProductDTO productDTO:products){
+            for (ProductDTO productDTO : products) {
                 ProductDTO existingProduct = productRepository.findByName(productDTO.getName());
                 if (existingProduct != null) {
                     productIds.add(existingProduct.getId());
                 } else {
                     productRepository.save(productDTO);
-                    ProductDTO savedProduct = productRepository.findByName(productDTO.getName());
-                    productIds.add(savedProduct.getId());
+                    existingProduct = productRepository.findByName(productDTO.getName());
+                    productIds.add(existingProduct.getId());
                 }
             }
             recipe.setProductIds(productIds);
-
             recipeRepository.save(recipe);
             RecipeDTO savedRecipe = recipeRepository.findById(recipe.getId());
+            if (savedRecipe == null) {
+                throw new IllegalStateException("Recipe was not saved correctly.");
+            }
             user.getRecipesIds().add(savedRecipe.getId());
-            userRepository.save(user);
-        } else {
-            throw new NoSuchElementException("Used witd id " + userId + " was not found.");
-        }
-    }
-
-    public List<RecipeDTO> getRecipesByUser(Long userId){
-        UserDTO user = userRepository.findById(userId);
-        if (user != null) {
-            return user.getRecipesIds()
-                    .stream()
-                    .map(recipeId->recipeRepository.findById(recipeId))
-                    .toList();
         } else {
             throw new NoSuchElementException("User with ID " + userId + " was not found.");
         }
+    }
+
+
+
+    public List<RecipeDTO> getRecipesByUser(Long userId){
+        UserDTO user = userRepository.findById(userId);
+        if (user == null) {
+            throw new NoSuchElementException("User with ID " + userId + " was not found.");
+        }
+        return recipeRepository.findByAuthorId(userId);
     }
 
     public ProductDTO getProductById(Long productId) {

@@ -1,6 +1,8 @@
 package com.polina.lab1.repository;
 
 import com.polina.lab1.dto.RecipeDTO;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -9,44 +11,57 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 public class RecipeRepositoryImpl implements RecipeRepository{
-    private final ArrayList<RecipeDTO> recipeRepository = new ArrayList<>();
-    private final AtomicLong idCounter = new AtomicLong(1);
+    private final JdbcTemplate jdbcTemplate;
+
+    public RecipeRepositoryImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    private final RowMapper<RecipeDTO> recipeMapper = (rs, rowNum) ->
+            RecipeDTO.builder()
+                    .id(rs.getLong("id"))
+                    .title(rs.getString("title"))
+                    .description(rs.getString("description"))
+                    .instructions(rs.getString("instructions"))
+                    .authorId(rs.getLong("author_id"))
+                    .build();
 
     @Override
-    public void save(RecipeDTO recipeDTO) {
-        if (recipeDTO.getId() == null){
-            recipeDTO.setId(idCounter.getAndIncrement());
-            recipeRepository.add(recipeDTO);
-        } else {
-            delete(recipeDTO.getId());
-            recipeRepository.add(recipeDTO);
+    public void save(RecipeDTO recipe) {
+        jdbcTemplate.update("INSERT INTO recipes (title, description, instructions, author_id) VALUES (?, ?, ?, ?)",
+                recipe.getTitle(), recipe.getDescription(), recipe.getInstructions(), recipe.getAuthorId());
+
+        Long recipeId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM recipes", Long.class);
+        recipe.setId(recipeId);
+
+        for (Long productId : recipe.getProductIds()) {
+            jdbcTemplate.update("INSERT INTO recipe_products (recipe_id, product_id) VALUES (?, ?)", recipeId, productId);
         }
     }
 
-    @Override
+
     public void delete(Long recipeId) {
-        recipeRepository.removeIf(recipe -> recipe.getId().equals(recipeId));
+        jdbcTemplate.update("DELETE FROM recipes WHERE id = ?", recipeId);
     }
 
-    @Override
     public RecipeDTO findById(Long recipeId) {
-        return recipeRepository
-                .stream()
-                .filter(recipe-> recipe.getId() != null && recipe.getId().equals(recipeId))
-                .findFirst()
-                .orElse(null);
+        List<RecipeDTO> recipes = jdbcTemplate.query("SELECT * FROM recipes WHERE id = ?", recipeMapper, recipeId);
+        return recipes.isEmpty() ? null : recipes.get(0);
     }
 
-    @Override
     public List<RecipeDTO> findAll() {
-        return new ArrayList<>(recipeRepository);
+        return jdbcTemplate.query("SELECT * FROM recipes", recipeMapper);
     }
 
-    @Override
     public List<RecipeDTO> findByProducts(List<Long> productIds) {
-        return recipeRepository
-                .stream()
-                .filter(recipe-> recipe.getId() != null && recipe.getProductIds().containsAll(productIds))
-                .toList();
+        String placeholders = String.join(",", productIds.stream().map(id -> "?").toList());
+        String sql = "SELECT r.* FROM recipes r JOIN recipe_products rp ON r.id = rp.recipe_id WHERE rp.product_id IN (" + placeholders + ")";
+
+        return jdbcTemplate.query(sql, recipeMapper, productIds.toArray());
     }
+
+    public List<RecipeDTO> findByAuthorId(Long authorId) {
+        return jdbcTemplate.query("SELECT * FROM recipes WHERE author_id = ?", recipeMapper, authorId);
+    }
+
 }
