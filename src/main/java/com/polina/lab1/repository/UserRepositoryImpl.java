@@ -31,24 +31,14 @@ public class UserRepositoryImpl implements UserRepository{
 
     @Override
     public void save(UserDTO user) {
-        String sql = "INSERT INTO users (username, email) VALUES (?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, user.getUsername());
-            ps.setString(2, user.getEmail());
-            return ps;
-        }, keyHolder);
-
-        if (keyHolder.getKey() == null) {
+        String insertSql = "INSERT INTO users (username, email) VALUES (?, ?)";
+        jdbcTemplate.update(insertSql, user.getUsername(), user.getEmail());
+        Long generatedId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM users", Long.class);
+        if (generatedId == null) {
             throw new IllegalStateException("Failed to retrieve generated ID.");
         }
-
-        user.setId(keyHolder.getKey().longValue());
+        user.setId(generatedId);
     }
-
-
 
 
     @Override
