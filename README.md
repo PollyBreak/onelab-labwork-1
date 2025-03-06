@@ -1,6 +1,18 @@
-Lab 1. Author: Polina Batova
-
+Lab 3. Author: Polina Batova
 Project Topic: Service for collecting cooking recipes
+
+TEST COVERAGE - 93% line
+![image](https://github.com/user-attachments/assets/fc3c0cba-4b8e-4cdb-bb67-2aa51be1e55f)
+
+UPDATES FROM 3 TASK:
+•	Changed JDBC to Hibernate.
+•	Added JPA repositories (my implementations were removed) 
+•	Updated old service - User Service - functionality related to recipes was moved to a new service, while only user-connected methods (like creation) were kept in this service.
+•	Wrote new service - Recipe Service - that allows users to create recipes and find them
+•	Added transaction management through @Transactional on services.
+•	Added JUNIT test. 93% line coverage. 
+
+
 
 Description: it is a service that allows users to create their own recipes. Each user can have many own recipes so it is One-to-Many relationship. 
 
@@ -9,11 +21,12 @@ Available functions are:
 -  create a user
 -  create a recipe
 -  show all users
+-  show all recipes
 -  show recipes by user id.
 
-There is no DB connection, as it will be in next modules. Now lists are used for data storage.
+DB is H2.
 
-As part of the first assignment, the following classes were implemented:
+The following classes were implemented:
 DTO: 
 - UserDTO
 - RecipeDTO
@@ -26,6 +39,7 @@ Repositories:
 
 Service:
 - UserService
+- RecipeService
 
 Demonstation of work:
 
