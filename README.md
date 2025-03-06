@@ -14,6 +14,11 @@ UPDATES FROM TASK 3:
 - 	 Added JUNIT test. 93% line coverage. 
 
 
+Relationships:
+
+1* One user has many recipes (One-to-Many). Bridge table is "user_recipes" that containts author_id from "users" table and recipe_id from "recipes"
+
+** Many recipes have many products (Many-to-Many). Bridge table is "recipe_products" that containts recipe_id from "recipes" table and product_id from "products" table
 
 Description: it is a service that allows users to create their own recipes. Each user can have many own recipes so it is One-to-Many relationship. 
 
