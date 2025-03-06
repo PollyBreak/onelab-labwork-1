@@ -1,5 +1,6 @@
 package com.polina.lab1.dto;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,14 +13,25 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name="recipes")
 public class RecipeDTO {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
-    //many-to-one
+
+    @Column(nullable = false)
     private Long authorId;
     private String instructions;
     private String description;
 
-    @Builder.Default
-    private List<Long> productIds = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "recipe_products",
+            joinColumns = @JoinColumn(name = "recipe_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    private List<ProductDTO> products;
 }

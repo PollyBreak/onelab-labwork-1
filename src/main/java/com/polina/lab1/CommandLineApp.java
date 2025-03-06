@@ -3,6 +3,7 @@ package com.polina.lab1;
 import com.polina.lab1.dto.ProductDTO;
 import com.polina.lab1.dto.RecipeDTO;
 import com.polina.lab1.dto.UserDTO;
+import com.polina.lab1.service.RecipeService;
 import com.polina.lab1.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -16,11 +17,16 @@ import java.util.Scanner;
 @Component
 public class CommandLineApp implements CommandLineRunner {
     private final UserService userService;
-    private final Scanner scanner = new Scanner(System.in);
+    private final RecipeService recipeService;
+    private final Scanner scanner;
 
     @Autowired
-    public CommandLineApp(UserService userService){
+    public CommandLineApp(UserService userService,
+                          RecipeService recipeService,
+                          Scanner scanner){
         this.userService = userService;
+        this.recipeService = recipeService;
+        this.scanner = scanner;
     }
 
     @Override
@@ -31,8 +37,9 @@ public class CommandLineApp implements CommandLineRunner {
             System.out.println("1 - to create user");
             System.out.println("2 - to create recipe");
             System.out.println("3 - to show all users");
-            System.out.println("4 - to show user's recipes");
-            System.out.println("5 - exit");
+            System.out.println("4 - to show all recipes");
+            System.out.println("5 - to show user's recipes");
+            System.out.println("6 - exit");
             System.out.print("Enter your option: ");
             int option = getIntInput();
 
@@ -40,8 +47,9 @@ public class CommandLineApp implements CommandLineRunner {
                 case 1 -> createUser();
                 case 2 -> createRecipe();
                 case 3 -> showAllUsers();
-                case 4 -> showUserRecipes();
-                case 5 -> {
+                case 4 -> showAllRecipes();
+                case 5 -> showUserRecipes();
+                case 6 -> {
                     System.out.println("Finishing application.");
                     return;
                 }
@@ -50,7 +58,7 @@ public class CommandLineApp implements CommandLineRunner {
         }
     }
 
-    private void createUser() {
+    public void createUser() {
         System.out.print("Enter username: ");
         String username = scanner.nextLine();
         System.out.print("Enter email: ");
@@ -63,7 +71,7 @@ public class CommandLineApp implements CommandLineRunner {
         }
     }
 
-    private void showAllUsers() {
+    public void showAllUsers() {
         List<UserDTO> users = userService.getAllUsers();
         if (users.isEmpty()) {
             System.out.println("No users found.");
@@ -73,28 +81,34 @@ public class CommandLineApp implements CommandLineRunner {
         }
     }
 
-    private void showUserRecipes() {
+    public void showAllRecipes() {
+        List<RecipeDTO> recipes = recipeService.getAllRecipes();
+        printRecipes(recipes);
+    }
+
+    public void printRecipes(List<RecipeDTO> recipes){
+        recipes.forEach(recipe -> {
+            System.out.println("\nRecipe:");
+            System.out.println("id: " + recipe.getId());
+            System.out.println("author id: " + recipe.getAuthorId());
+            System.out.println("title: " + recipe.getTitle());
+            System.out.println("description: " + recipe.getDescription());
+            System.out.println("products:");
+            recipe.getProducts()
+                    .forEach(product -> System.out.println(" - " + product.getName()));
+            System.out.println();
+        });
+    }
+
+    public void showUserRecipes() {
         System.out.print("Enter user id: ");
         Long userId = getLongInput();
         try {
-            List<RecipeDTO> recipes = userService.getRecipesByUser(userId);
+            List<RecipeDTO> recipes = recipeService.getRecipesByUser(userId);
             if (recipes.isEmpty()) {
                 System.out.println("No recipes was found for this user.");
             } else {
-                recipes.forEach(recipe -> {
-                    System.out.println("\nRecipe:");
-                    System.out.println("id: " + recipe.getId());
-                    System.out.println("title: " + recipe.getTitle());
-                    System.out.println("description: " + recipe.getDescription());
-                    System.out.println("products:");
-                    recipe.getProductIds().forEach(productId -> {
-                        ProductDTO product = userService.getProductById(productId);
-                        if (product != null) {
-                            System.out.println(" - " + product.getName());
-                        }
-                    });
-                    System.out.println();
-                });
+                printRecipes(recipes);
             }
         } catch (NoSuchElementException e) {
             System.out.println(e.getMessage());
@@ -102,7 +116,7 @@ public class CommandLineApp implements CommandLineRunner {
     }
 
 
-    private void createRecipe() {
+    public void createRecipe() {
         System.out.print("Enter user id: ");
         Long userId = getLongInput();
         try {
@@ -131,11 +145,11 @@ public class CommandLineApp implements CommandLineRunner {
                 .description(description)
                 .instructions(instructions)
                 .build();
-        userService.addRecipe(userId, recipe, products);
+        recipeService.addRecipe(userId, recipe, products);
         System.out.println("Recipe created successfully!");
     }
 
-    private int getIntInput() {
+    public int getIntInput() {
         while (true) {
             try {
                 return Integer.parseInt(scanner.nextLine().trim());
@@ -145,7 +159,7 @@ public class CommandLineApp implements CommandLineRunner {
         }
     }
 
-    private Long getLongInput() {
+    public Long getLongInput() {
         while (true) {
             try {
                 return Long.parseLong(scanner.nextLine().trim());
@@ -154,4 +168,6 @@ public class CommandLineApp implements CommandLineRunner {
             }
         }
     }
+
+
 }
