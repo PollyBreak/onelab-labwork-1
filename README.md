@@ -1,4 +1,5 @@
 Lab 3. Author: Polina Batova
+
 Project Topic: Service for collecting cooking recipes
 
 TEST COVERAGE - 93% line
