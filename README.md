@@ -6,12 +6,12 @@ TEST COVERAGE - 93% line
 ![image](https://github.com/user-attachments/assets/fc3c0cba-4b8e-4cdb-bb67-2aa51be1e55f)
 
 UPDATES FROM 3 TASK:
-•	Changed JDBC to Hibernate.
-•	Added JPA repositories (my implementations were removed) 
-•	Updated old service - User Service - functionality related to recipes was moved to a new service, while only user-connected methods (like creation) were kept in this service.
-•	Wrote new service - Recipe Service - that allows users to create recipes and find them
-•	Added transaction management through @Transactional on services.
-•	Added JUNIT test. 93% line coverage. 
+- Changed JDBC to Hibernate.
+- Added JPA repositories (my implementations were removed)
+- Updated old service - User Service - functionality related to recipes was moved to a new service, while only user-connected methods (like creation) were kept in this service.
+- Wrote new service - Recipe Service - that allows users to create recipes and find them
+- 	Added transaction management through @Transactional on services.
+- 	 dded JUNIT test. 93% line coverage. 
 
 
 
