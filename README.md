@@ -5,7 +5,7 @@ REQIEREMENTS IMPLEMENTED:
 2) Kafka used only in once process. When user adds some product to his favourite product, due to kafka background proccess occurs (in user servuce user's favourite products updates -> in recipe service new recommended recipes are found and written in database, so then when user asks recommended tasks through endpoint they are already calculated and just read from database)
 (Extra screenshots are in screenshots folder)
 ![image](https://github.com/user-attachments/assets/faf8347c-33dd-4420-892b-797334a1ca19)
-![image](https://github.com/user-attachments/assets/b6d1d4a0-1274-4219-bb7a-dcd3dbdfcc0a)
+![image](https://github.com/user-attachments/assets/44518fef-b6a8-41fd-8c2e-57a7127040af)
 4) discovery-service based on Eureka Server was implemented, Feign Clients are used for inter-service communication
 5) each service has service, and controller layers. services are injected in controllers
 6) For authentication a separate service was created. This auth service generates and validate jwt token. BUT IN FUNCTIONS only create recipe requires authentication (it check that user logged in and that he tries to add a recipe with right user id -> so user with id 1 cannot create a recipe where user id = 4)
