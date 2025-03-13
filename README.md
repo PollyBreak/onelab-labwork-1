@@ -1,5 +1,4 @@
-![image](https://github.com/user-attachments/assets/90f97551-57a6-478e-b812-0ca6913e84d0)TOPIC: Recipe Service
-
+TOPIC: Recipe Service
 
 REQIEREMENTS IMPLEMENTED:
 1) Implemented user-service, recipe-service, auth-service as separate microservices with REST controllers. Almost all communication is through REST
