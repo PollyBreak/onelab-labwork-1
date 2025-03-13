@@ -34,7 +34,6 @@ public class KafkaConsumer {
         System.out.println("Received Kafka event: " + message);
         Long userId = extractUserIdFromMessage(message);
         if (userId == null) return;
-
         Map<String, Object> response;
         try {
             response = userClient.getUserPreferences(userId).getBody();
@@ -42,20 +41,16 @@ public class KafkaConsumer {
             System.err.println("User Service is unavailable. Skipping recommendation update.");
             return;
         }
-
         if (response == null || !response.containsKey("favoriteIngredients")) return;
         List<String> favoriteIngredients = (List<String>) response.get("favoriteIngredients");
-
         List<Recipe> recommendedRecipes = recipeRepository.findAll().stream()
                 .filter(recipe -> recipe.getProducts().stream()
                         .map(product -> product.getName().toLowerCase())
                         .anyMatch(favoriteIngredients::contains))
                 .sorted((r1, r2) -> Double.compare(r2.getAverageRating(), r1.getAverageRating()))
                 .collect(Collectors.toList());
-
         UserRecommendation recommendation = new UserRecommendation(userId, recommendedRecipes);
         userRecommendationRepository.save(recommendation);
-
         System.out.println("Updated recommendations for User " + userId);
     }
 
