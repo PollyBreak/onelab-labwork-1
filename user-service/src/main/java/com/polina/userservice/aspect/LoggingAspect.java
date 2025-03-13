@@ -1,46 +1,53 @@
 package com.polina.userservice.aspect;
 
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Arrays;
-
 
 @Aspect
 @Component
 public class LoggingAspect {
 
-    @Before("execution(* com.polina..*(..))")
-    public void beforeAdvice() {
-        System.out.println("[AOP] This advice executes before method");
-    }
+    private static final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
-    @After("execution(* com.polina..*(..))")
-    public void afterAdvice() {
-        System.out.println("[AOP] This advice executes after method");
-    }
+    @Around("execution(* com.polina..controller..*(..))")
+    public Object logRequestResponse(ProceedingJoinPoint joinPoint) throws Throwable {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
+        HttpServletResponse response = attributes != null ? attributes.getResponse() : null;
 
-    @AfterReturning(value = "execution(* com.polina..*(..))", returning = "result")
-    public void afterReturningAdvice(Object result) {
-        System.out.println("[AOP] Successfully executed method. Returned: " + result);
-    }
+        String ipAddress = request != null ? request.getRemoteAddr() : "UNKNOWN";
+        String requestedUrl = request != null ? request.getRequestURI() : "UNKNOWN";
 
-    @AfterThrowing(value = "execution(* com.polina..*(..))", throwing = "exception")
-    public void afterThrowingAdvice(Exception exception) {
-        System.out.println("[AOP] Exception occurred: " + exception.getMessage());
-    }
-
-    @Around("execution(* com.polina..service.*.*(..)) || execution(* com.polina..repository.*.*(..))")
-    public Object aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
-        System.out.println("[AOP] Method called: " + joinPoint.getSignature());
-        System.out.println("[AOP] Arguments: " + Arrays.toString(joinPoint.getArgs()));
-        Object result = joinPoint.proceed();
-        long endTime = System.currentTimeMillis();
-        System.out.println("[AOP] Execution completed: " + joinPoint.getSignature() +
-                " in " + (endTime - startTime) + "ms");
+        logger.info("[REQUEST] IP: {} | URL: {} | Method: {} | Params: {}",
+                 ipAddress, requestedUrl, joinPoint.getSignature(), Arrays.toString(joinPoint.getArgs()));
+
+        Object result;
+        try {
+            result = joinPoint.proceed();
+        } catch (Exception ex) {
+            logger.error("[ERROR] URL: {} | Exception: {}", requestedUrl, ex.getMessage(), ex);
+            throw ex;
+        }
+
+        long duration = System.currentTimeMillis() - startTime;
+        int statusCode = response != null ? response.getStatus() : 0;
+
+        logger.info("[RESPONSE] URL: {} | Status: {} | Duration: {}ms | Response: {}",
+                requestedUrl, statusCode, duration, result);
+
         return result;
     }
+
 }

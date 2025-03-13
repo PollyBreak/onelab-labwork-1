@@ -1,0 +1,291 @@
+{
+	"info": {
+		"_postman_id": "1e5d874a-89a8-41ff-8756-ae37aade9f58",
+		"name": "Onelab java learning - recipes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "25589762"
+	},
+	"item": [
+		{
+			"name": "add recipe",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"fried eggs\",\r\n    \"description\":\"tasty eggs\",\r\n    \"instructions\":\"take eggs, break them and fry\",\r\n    \"authorId\":4,\r\n    \"products\":[\"eggs\", \"oil\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8082/recipes"
+			},
+			"response": []
+		},
+		{
+			"name": "get recipes",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"fried eggs\",\r\n    \"description\":\"tasty eggs\",\r\n    \"instructions\":\"take eggs, break them and fry\",\r\n    \"authorId\":2,\r\n    \"products\":[\"eggs\", \"oil\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8082/recipes"
+			},
+			"response": []
+		},
+		{
+			"name": "post review",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"recipeId\":2,\r\n    \"userId\":1,\r\n    \"rating\":5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8082/recipes/1/review"
+			},
+			"response": []
+		},
+		{
+			"name": "get recommendations",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"fried eggs\",\r\n    \"description\":\"tasty eggs\",\r\n    \"instructions\":\"take eggs, break them and fry\",\r\n    \"authorId\":2,\r\n    \"products\":[\"eggs\", \"oil\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8082/recipes/recommend/1"
+			},
+			"response": []
+		},
+		{
+			"name": "get user preferences",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8081/users/preferences/1"
+			},
+			"response": []
+		},
+		{
+			"name": "add user preferences",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"1\",\r\n    \"favoriteIngredients\":[\"coffee\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8081/users/preferences"
+			},
+			"response": []
+		},
+		{
+			"name": "delete user preferences",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": "http://localhost:8081/users/preferences/1"
+			},
+			"response": []
+		},
+		{
+			"name": "add recipe2",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib2IyIiwiaWF0IjoxNzQxODMwNjU4LCJleHAiOjE3NDE4NjY2NTh9.RAVxqd6TDb8FOkAfXn1agZNVewiL_EdDKfMQAVYLHT8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"strawberry milkshake\",\r\n    \"description\":\"tasty yummy\",\r\n    \"instructions\":\"take ......\",\r\n    \"authorId\":3,\r\n    \"products\":[\"ice cream\", \"milk\", \"strawberry\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8082/recipes"
+			},
+			"response": []
+		},
+		{
+			"name": "add new user",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"1\",\r\n    \"favoriteIngredients\":[\"butter\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8081/users/preferences"
+			},
+			"response": []
+		},
+		{
+			"name": "add new user2",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"bob2\",\r\n    \"email\":\"bob2@gmail.com\",\r\n    \"password\":\"testing\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8081/users/register"
+			},
+			"response": []
+		},
+		{
+			"name": "login user2",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"bob2\",\r\n    \"password\":\"testing\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "validate ser2",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"bob2\",\r\n    \"password\":\"testing\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/auth/validate?token=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib2IyIiwiaWF0IjoxNzQxODI5Mzk1LCJleHAiOjE3NDE4NjUzOTV9.fGz21cD4xf7Sy8gUYzTR_j2tNlzG6jYyxhEINEQ_OsQ",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"auth",
+						"validate"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib2IyIiwiaWF0IjoxNzQxODI5Mzk1LCJleHAiOjE3NDE4NjUzOTV9.fGz21cD4xf7Sy8gUYzTR_j2tNlzG6jYyxhEINEQ_OsQ"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

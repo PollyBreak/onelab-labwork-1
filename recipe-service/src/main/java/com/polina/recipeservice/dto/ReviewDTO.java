@@ -1,22 +1,18 @@
 package com.polina.recipeservice.dto;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-@Entity
-@Table(name = "reviews")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewDTO {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Recipe ID is required")
-    private Long recipeId;
 
     @NotNull(message = "User ID is required")
     private Long userId;
@@ -25,9 +21,8 @@ public class ReviewDTO {
     @Max(value = 5, message = "Rating must be at most 5")
     private int rating;
 
-    @Size(max = 255, message = "Comment cannot exceed 255 characters")
     private String comment;
 
-    public ReviewDTO(long l, long l1, int i, String s) {
+    public ReviewDTO(int i, String s) {
     }
 }
