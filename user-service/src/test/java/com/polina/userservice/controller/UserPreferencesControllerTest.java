@@ -17,13 +17,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserPreferencesControllerTest {
-
     @InjectMocks
     private UserPreferencesController userPreferencesController;
-
     @Mock
     private UserPreferencesService userPreferencesService;
-
     private UserPreferencesDTO mockPreferences;
 
     @BeforeEach
@@ -35,10 +32,13 @@ class UserPreferencesControllerTest {
     void testAddUserPreferences() {
         doNothing().when(userPreferencesService).addUserPreferences(mockPreferences);
 
-        ResponseEntity<String> response = userPreferencesController.addUserPreferences(mockPreferences);
+        ResponseEntity<String> response = userPreferencesController.
+                addUserPreferences(mockPreferences);
 
-        assertEquals("User preferences updated successfully (new ingredients added).", response.getBody());
-        verify(userPreferencesService, times(1)).addUserPreferences(mockPreferences);
+        assertEquals("User preferences updated successfully (new ingredients added).",
+                response.getBody());
+        verify(userPreferencesService, times(1))
+                .addUserPreferences(mockPreferences);
     }
 
     @Test
@@ -56,9 +56,12 @@ class UserPreferencesControllerTest {
         List<String> ingredientsToRemove = List.of("Tomato");
         doNothing().when(userPreferencesService).removeUserPreferences(1L, ingredientsToRemove);
 
-        ResponseEntity<String> response = userPreferencesController.removeUserPreferences(1L, ingredientsToRemove);
+        ResponseEntity<String> response = userPreferencesController
+                .removeUserPreferences(1L, ingredientsToRemove);
 
-        assertEquals("User preferences updated successfully (ingredients removed).", response.getBody());
-        verify(userPreferencesService, times(1)).removeUserPreferences(1L, ingredientsToRemove);
+        assertEquals("User preferences updated successfully (ingredients removed).",
+                response.getBody());
+        verify(userPreferencesService, times(1))
+                .removeUserPreferences(1L, ingredientsToRemove);
     }
 }

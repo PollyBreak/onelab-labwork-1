@@ -31,6 +31,7 @@ class KafkaProducerTest {
 
         kafkaProducer.sendUserPreferencesUpdate(userId);
 
-        verify(kafkaTemplate, times(1)).send("user-preferences-topic", expectedMessage);
+        verify(kafkaTemplate, times(1))
+                .send("user-preferences-topic", expectedMessage);
     }
 }

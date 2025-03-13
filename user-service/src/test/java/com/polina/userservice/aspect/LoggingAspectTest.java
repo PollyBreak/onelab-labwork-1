@@ -67,7 +67,8 @@ class LoggingAspectTest {
         when(joinPoint.getArgs()).thenReturn(new Object[]{"arg1", 42});
         when(joinPoint.proceed()).thenThrow(new RuntimeException("Test Exception"));
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> loggingAspect.logRequestResponse(joinPoint));
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> loggingAspect.
+                logRequestResponse(joinPoint));
         assertEquals("Test Exception", thrown.getMessage());
     }
 

@@ -1,7 +1,6 @@
 package com.polina.recipeservice.service;
 
 import com.polina.recipeservice.dto.RecipeDTO;
-import com.polina.recipeservice.entity.UserRecommendation;
 import com.polina.recipeservice.repository.UserRecommendationRepository;
 import org.springframework.stereotype.Service;
 

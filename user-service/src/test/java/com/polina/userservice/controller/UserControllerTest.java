@@ -17,7 +17,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
-
     @InjectMocks
     private UserController userController;
     @Mock
@@ -26,7 +25,8 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockUser = new UserDTO(1L, "testUser", "test@example.com", "password123");
+        mockUser = new UserDTO(1L, "testUser",
+                "test@example.com", "password123");
     }
 
     @Test
@@ -42,9 +42,7 @@ class UserControllerTest {
     @Test
     void testGetUserByUsername() {
         when(userService.getUserByUsername("testUser")).thenReturn(mockUser);
-
         UserDTO response = userController.getUserByUsername("testUser");
-
         assertNotNull(response);
         assertEquals("testUser", response.getUsername());
     }
@@ -52,9 +50,7 @@ class UserControllerTest {
     @Test
     void testGetUserById() {
         when(userService.findUserById(1L)).thenReturn(mockUser);
-
         ResponseEntity<UserDTO> response = userController.getUserById(1L);
-
         assertNotNull(response.getBody());
         assertEquals(1L, response.getBody().getId());
     }
@@ -63,9 +59,7 @@ class UserControllerTest {
     void testGetAllUsers() {
         List<UserDTO> users = List.of(mockUser);
         when(userService.getAllUsers()).thenReturn(users);
-
         ResponseEntity<List<UserDTO>> response = userController.getAllUsers();
-
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
     }
@@ -73,9 +67,7 @@ class UserControllerTest {
     @Test
     void testDeleteUser() {
         doNothing().when(userService).deleteUser(1L);
-
         ResponseEntity<String> response = userController.deleteUser(1L);
-
         assertEquals("User deleted successfully", response.getBody());
         verify(userService, times(1)).deleteUser(1L);
     }
@@ -83,9 +75,7 @@ class UserControllerTest {
     @Test
     void testGetUserIdByUsername() {
         when(userService.getUserIdByUsername("testUser")).thenReturn(1L);
-
         ResponseEntity<Long> response = userController.getUserIdByUsername("testUser");
-
         assertEquals(1L, response.getBody());
     }
 }

@@ -25,9 +25,11 @@ public class UserPreferencesService {
 
     public void addUserPreferences(UserPreferencesDTO preferencesDTO) {
         User user = userRepository.findById(preferencesDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User with ID " + preferencesDTO.getUserId() + " does not exist."));
+                .orElseThrow(() -> new IllegalArgumentException("User with ID " +
+                        preferencesDTO.getUserId() + " does not exist."));
         List<String> updatedPreferences = new ArrayList<>
-                (user.getFavoriteIngredients() != null? user.getFavoriteIngredients():new ArrayList<>());
+                (user.getFavoriteIngredients() != null? user.
+                        getFavoriteIngredients():new ArrayList<>());
         updatedPreferences.addAll(preferencesDTO.getFavoriteIngredients());
         user.setFavoriteIngredients(new ArrayList<>(new HashSet<>(updatedPreferences)));
         userRepository.save(user);
@@ -37,7 +39,8 @@ public class UserPreferencesService {
 
     public void removeUserPreferences(Long userId, List<String> ingredientsToRemove) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist."));
+                .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId +
+                        " does not exist."));
         List<String> updatedPreferences = new ArrayList<>(user.getFavoriteIngredients());
         updatedPreferences.removeAll(ingredientsToRemove);
         user.setFavoriteIngredients(updatedPreferences);
@@ -50,8 +53,8 @@ public class UserPreferencesService {
 
     public UserPreferencesDTO getUserPreferences(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist."));
-
+                .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId +
+                        " does not exist."));
         return new UserPreferencesDTO(user.getId(), user.getFavoriteIngredients());
     }
 }

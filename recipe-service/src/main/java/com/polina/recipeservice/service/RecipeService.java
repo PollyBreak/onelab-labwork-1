@@ -31,9 +31,7 @@ public class RecipeService {
         this.userClient = userClient;
     }
 
-    // ✅ Create Recipe
     public void createRecipe(RecipeDTO recipeDTO) {
-        // Ensure user exists
         try {
             userClient.checkUserExists(recipeDTO.getAuthorId());
         } catch (Exception e) {
@@ -41,7 +39,10 @@ public class RecipeService {
         }
 
         List<Product> products = recipeDTO.getProducts().stream()
-                .map(name -> productRepository.findByName(name) != null ? productRepository.findByName(name) : productRepository.save(new Product(null, name)))
+                .map(name -> productRepository
+                        .findByName(name) != null ?
+                        productRepository.findByName(name) :
+                        productRepository.save(new Product(null, name)))
                 .collect(Collectors.toList());
 
         Recipe recipe = Recipe.builder()
@@ -51,25 +52,21 @@ public class RecipeService {
                 .authorId(recipeDTO.getAuthorId())
                 .products(products)
                 .build();
-
         recipeRepository.save(recipe);
     }
 
-    // ✅ Get All Recipes
     public List<RecipeDTO> getAllRecipes() {
         return recipeRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    // ✅ Get Recipes by User ID
     public List<RecipeDTO> getRecipesByUser(Long userId) {
         return recipeRepository.findByAuthorId(userId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    // ✅ Get Recommended Recipes for a User
     public List<RecipeDTO> getRecommendedRecipes(Long userId) {
         try {
             ResponseEntity<Map<String, Object>> response = userClient.getUserPreferences(userId);
@@ -80,13 +77,12 @@ public class RecipeService {
             }
 
             List<String> favoriteIngredients = (List<String>) responseBody.get("favoriteIngredients");
-
             return recipeRepository.findAll().stream()
                     .filter(recipe -> recipe.getProducts().stream()
                             .map(Product::getName)
                             .anyMatch(favoriteIngredients::contains))
                     .map(this::convertToDTO)
-                    .sorted(Comparator.comparingDouble(RecipeDTO::getAverageRating).reversed())  // Sort by rating
+                    .sorted(Comparator.comparingDouble(RecipeDTO::getAverageRating).reversed())
                     .collect(Collectors.toList());
         } catch (Exception e) {
             return Collections.emptyList();
@@ -95,19 +91,15 @@ public class RecipeService {
 
     public void addReview(Long recipeId, ReviewDTO reviewDTO) {
         Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with ID: " + recipeId));
-
-        // ✅ Check if the user has already reviewed this specific recipe
-        Optional<Review> existingReview = reviewRepository.findByRecipeIdAndUserId(recipeId, reviewDTO.getUserId());
-
+                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with ID: "+recipeId));
+        Optional<Review> existingReview = reviewRepository.
+                findByRecipeIdAndUserId(recipeId, reviewDTO.getUserId());
         if (existingReview.isPresent()) {
-            // ✅ Update existing review if found
             Review reviewToUpdate = existingReview.get();
             reviewToUpdate.setRating(reviewDTO.getRating());
             reviewToUpdate.setComment(reviewDTO.getComment());
             reviewRepository.save(reviewToUpdate);
         } else {
-            // ✅ If no existing review, create a new one
             Review newReview = Review.builder()
                     .recipeId(recipeId)
                     .userId(reviewDTO.getUserId())
@@ -116,30 +108,23 @@ public class RecipeService {
                     .build();
             reviewRepository.save(newReview);
         }
-
-        // ✅ Update Recipe Rating after review update
         updateRecipeRating(recipeId);
     }
 
 
-    // ✅ Recalculate and update the average rating of a recipe
     private void updateRecipeRating(Long recipeId) {
         List<Review> reviews = reviewRepository.findByRecipeId(recipeId);
-
         double avgRating = reviews.stream()
                 .mapToInt(Review::getRating)
                 .average()
                 .orElse(0.0);
-
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
-
-        recipe.setAverageRating(avgRating); // ✅ Now updating the rating
-        recipeRepository.save(recipe); // ✅ Save updated rating
+        recipe.setAverageRating(avgRating);
+        recipeRepository.save(recipe);
     }
 
 
-    // Helper: Convert Entity to DTO
     private RecipeDTO convertToDTO(Recipe recipe) {
         return RecipeDTO.builder()
                 .id(recipe.getId())
@@ -147,7 +132,8 @@ public class RecipeService {
                 .description(recipe.getDescription())
                 .instructions(recipe.getInstructions())
                 .authorId(recipe.getAuthorId())
-                .products(recipe.getProducts().stream().map(Product::getName).collect(Collectors.toList()))
+                .products(recipe.getProducts()
+                        .stream().map(Product::getName).collect(Collectors.toList()))
                 .averageRating(recipe.getAverageRating())
                 .build();
     }

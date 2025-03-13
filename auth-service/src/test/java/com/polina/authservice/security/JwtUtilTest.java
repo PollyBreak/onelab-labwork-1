@@ -24,7 +24,7 @@ class JwtUtilTest {
     void setUp() {
         jwtUtil = new JwtUtil();
         validToken = jwtUtil.generateToken("testUser");
-        invalidSignatureToken = validToken.substring(0, validToken.length() - 5) + "abcde"; // Break signature
+        invalidSignatureToken = validToken.substring(0, validToken.length() - 5) + "abcde";
     }
 
     @Test

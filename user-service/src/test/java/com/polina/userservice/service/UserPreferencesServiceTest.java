@@ -49,7 +49,8 @@ class UserPreferencesServiceTest {
     void testAddUserPreferences_UserNotFound() {
         UserPreferencesDTO preferencesDTO = new UserPreferencesDTO(99L, List.of("Onion"));
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> userPreferencesService.addUserPreferences(preferencesDTO));
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> userPreferencesService.addUserPreferences(preferencesDTO));
         assertEquals("User with ID 99 does not exist.", exception.getMessage());
     }
 
@@ -58,7 +59,8 @@ class UserPreferencesServiceTest {
         List<String> ingredientsToRemove = List.of("Tomato");
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(userRepository.save(any(User.class))).thenReturn(mockUser);
-        assertDoesNotThrow(() -> userPreferencesService.removeUserPreferences(1L, ingredientsToRemove));
+        assertDoesNotThrow(() -> userPreferencesService
+                .removeUserPreferences(1L, ingredientsToRemove));
         verify(userRepository, times(1)).save(any(User.class));
         verify(kafkaProducer, times(1)).sendUserPreferencesUpdate(1L);
     }
@@ -67,7 +69,8 @@ class UserPreferencesServiceTest {
     void testRemoveUserPreferences_UserNotFound() {
         List<String> ingredientsToRemove = List.of("Tomato");
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> userPreferencesService.removeUserPreferences(99L, ingredientsToRemove));
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> userPreferencesService.removeUserPreferences(99L, ingredientsToRemove));
         assertEquals("User with ID 99 does not exist.", exception.getMessage());
     }
 
@@ -82,7 +85,8 @@ class UserPreferencesServiceTest {
     @Test
     void testGetUserPreferences_UserNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> userPreferencesService.getUserPreferences(99L));
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> userPreferencesService.getUserPreferences(99L));
         assertEquals("User with ID 99 does not exist.", exception.getMessage());
     }
 }

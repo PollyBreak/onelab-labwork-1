@@ -95,7 +95,8 @@ class LoggingAspectTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("testUser");
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> loggingAspect.logRequestResponse(joinPoint));
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> loggingAspect.logRequestResponse(joinPoint));
         assertEquals("Test Exception", thrown.getMessage());
     }
 

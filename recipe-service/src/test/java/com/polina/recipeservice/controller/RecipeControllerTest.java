@@ -50,7 +50,8 @@ class RecipeControllerTest {
 
     @Test
     void testGetAllRecipes() {
-        List<RecipeDTO> recipes = List.of(new RecipeDTO(1L, "Recipe1", "Instructions", 1L));
+        List<RecipeDTO> recipes = List.of(new RecipeDTO(1L,
+                "Recipe1", "Instructions", 1L));
         when(recipeService.getAllRecipes()).thenReturn(recipes);
         ResponseEntity<List<RecipeDTO>> response = recipeController.getAllRecipes();
         assertEquals(200, response.getStatusCodeValue());
@@ -59,7 +60,8 @@ class RecipeControllerTest {
 
     @Test
     void testGetRecipesByUser() {
-        List<RecipeDTO> recipes = List.of(new RecipeDTO(1L, "Recipe1", "Instructions", 1L));
+        List<RecipeDTO> recipes = List.of(new RecipeDTO(1L,
+                "Recipe1", "Instructions", 1L));
         when(recipeService.getRecipesByUser(1L)).thenReturn(recipes);
 
         ResponseEntity<List<RecipeDTO>> response = recipeController.getRecipesByUser(1L);
@@ -70,7 +72,8 @@ class RecipeControllerTest {
 
     @Test
     void testGetUserRecommendations() {
-        List<RecipeDTO> recommendations = List.of(new RecipeDTO(1L, "Recommended", "Instructions", 1L));
+        List<RecipeDTO> recommendations = List.of(new RecipeDTO(1L,
+                "Recommended", "Instructions", 1L));
         when(recommendationService.getUserRecommendations(1L)).thenReturn(recommendations);
 
         ResponseEntity<List<RecipeDTO>> response = recipeController.getUserRecommendations(1L);
@@ -91,7 +94,8 @@ class RecipeControllerTest {
 
     @Test
     void testCreateRecipe_Success() {
-        RecipeDTO recipeDTO = new RecipeDTO(1L, "Test Recipe", "Instructions", 1L);
+        RecipeDTO recipeDTO = new RecipeDTO(1L, "Test Recipe",
+                "Instructions", 1L);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(1L);
         ResponseEntity<String> response = recipeController.createRecipe(recipeDTO);
@@ -102,12 +106,14 @@ class RecipeControllerTest {
 
     @Test
     void testCreateRecipe_Forbidden() {
-         RecipeDTO recipeDTO = new RecipeDTO(1L, "Test Recipe", "Instructions", 2L);
+         RecipeDTO recipeDTO = new RecipeDTO(1L, "Test Recipe",
+                 "Instructions", 2L);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(1L);
         ResponseEntity<String> response = recipeController.createRecipe(recipeDTO);
         assertEquals(403, response.getStatusCodeValue());
-        assertEquals("Forbidden: You can only create recipes for yourself", response.getBody());
+        assertEquals("Forbidden: You can only create recipes for yourself",
+                response.getBody());
     }
 
 

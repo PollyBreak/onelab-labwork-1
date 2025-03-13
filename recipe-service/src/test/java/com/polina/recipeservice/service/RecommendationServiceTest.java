@@ -34,7 +34,6 @@ class RecommendationServiceTest {
 
     @Test
     void testGetUserRecommendations_WithRecommendations() {
-        // Mock data
         Recipe recipe = new Recipe(1L, "Pasta", "Delicious pasta", "Boil water", 1L, List.of(new Product(1L, "Tomato")), 4.5);
         UserRecommendation userRecommendation = new UserRecommendation(1L, List.of(recipe));
 
@@ -50,9 +49,7 @@ class RecommendationServiceTest {
     @Test
     void testGetUserRecommendations_NoRecommendations() {
         when(userRecommendationRepository.findById(2L)).thenReturn(Optional.empty());
-
         List<RecipeDTO> recommendations = recommendationService.getUserRecommendations(2L);
-
         assertNotNull(recommendations);
         assertTrue(recommendations.isEmpty());
     }

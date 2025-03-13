@@ -38,7 +38,8 @@ class UserServiceTest {
 
     @Test
     void testRegisterUser_Success() {
-        UserDTO userDTO = new UserDTO(1L, "testUser", "test@example.com", "password123");
+        UserDTO userDTO = new UserDTO(1L, "testUser",
+                "test@example.com", "password123");
         when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(userDTO.getPassword())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(mockUser);
@@ -49,17 +50,17 @@ class UserServiceTest {
 
     @Test
     void testRegisterUser_UsernameTaken() {
-        UserDTO userDTO = new UserDTO(1L, "testUser", "test@example.com", "password123");
+        UserDTO userDTO = new UserDTO(1L, "testUser",
+                "test@example.com", "password123");
         when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.of(mockUser));
-
-        Exception exception = assertThrows(RuntimeException.class, () -> userService.registerUser(userDTO));
+        Exception exception = assertThrows(RuntimeException.class,
+                () -> userService.registerUser(userDTO));
         assertEquals("Username already taken!", exception.getMessage());
     }
 
     @Test
     void testFindUserById_Success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
-
         UserDTO result = userService.findUserById(1L);
         assertEquals(mockUser.getId(), result.getId());
         assertEquals(mockUser.getUsername(), result.getUsername());
@@ -68,15 +69,14 @@ class UserServiceTest {
     @Test
     void testFindUserById_NotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.findUserById(99L));
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> userService.findUserById(99L));
         assertEquals("User with ID 99 was not found.", exception.getMessage());
     }
 
     @Test
     void testGetUserByUsername_Success() {
         when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-
         UserDTO result = userService.getUserByUsername("testUser");
         assertEquals(mockUser.getUsername(), result.getUsername());
     }
@@ -84,15 +84,14 @@ class UserServiceTest {
     @Test
     void testGetUserByUsername_NotFound() {
         when(userRepository.findByUsername("unknownUser")).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(RuntimeException.class, () -> userService.getUserByUsername("unknownUser"));
+        Exception exception = assertThrows(RuntimeException.class,
+                () -> userService.getUserByUsername("unknownUser"));
         assertEquals("User not found", exception.getMessage());
     }
 
     @Test
     void testGetAllUsers() {
         when(userRepository.findAll()).thenReturn(List.of(mockUser));
-
         List<UserDTO> result = userService.getAllUsers();
         assertEquals(1, result.size());
         assertEquals("testUser", result.get(0).getUsername());
@@ -102,22 +101,20 @@ class UserServiceTest {
     void testDeleteUser_Success() {
         when(userRepository.existsById(1L)).thenReturn(true);
         doNothing().when(userRepository).deleteById(1L);
-
         assertDoesNotThrow(() -> userService.deleteUser(1L));
     }
 
     @Test
     void testDeleteUser_NotFound() {
         when(userRepository.existsById(99L)).thenReturn(false);
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.deleteUser(99L));
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> userService.deleteUser(99L));
         assertEquals("User with ID 99 does not exist.", exception.getMessage());
     }
 
     @Test
     void testGetUserIdByUsername_Success() {
         when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-
         Long userId = userService.getUserIdByUsername("testUser");
         assertEquals(1L, userId);
     }
@@ -125,7 +122,6 @@ class UserServiceTest {
     @Test
     void testGetUserIdByUsername_NotFound() {
         when(userRepository.findByUsername("unknownUser")).thenReturn(Optional.empty());
-
         Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.getUserIdByUsername("unknownUser"));
         assertEquals("User not found", exception.getMessage());
     }

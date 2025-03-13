@@ -19,19 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoggingAspectTest {
-
     @InjectMocks
     private LoggingAspect loggingAspect;
-
     @Mock
     private ProceedingJoinPoint joinPoint;
-
     @Mock
     private HttpServletRequest request;
-
     @Mock
     private HttpServletResponse response;
-
     @Mock
     private ServletRequestAttributes attributes;
 

@@ -19,16 +19,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
-
     @InjectMocks
     private AuthController authController;
-
     @Mock
     private UserClient userClient;
-
     @Mock
     private JwtUtil jwtUtil;
-
     @Mock
     private PasswordEncoder passwordEncoder;
 
@@ -39,8 +35,10 @@ class AuthControllerTest {
 
     @Test
     void testRegister() {
-        Map<String, String> request = Map.of("username", "testUser", "email", "test@example.com", "password", "password123");
-        UserDTO userDTO = new UserDTO(null, "testUser", "test@example.com", "password123");
+        Map<String, String> request = Map.of("username", "testUser",
+                "email", "test@example.com", "password", "password123");
+        UserDTO userDTO = new UserDTO(null, "testUser", "test@example.com",
+                "password123");
         when(userClient.registerUser(userDTO)).thenReturn("User registered successfully");
 
         String response = authController.register(request);
@@ -49,10 +47,13 @@ class AuthControllerTest {
 
     @Test
     void testLogin_Success() {
-        Map<String, String> request = Map.of("username", "testUser", "password", "password123");
-        UserDTO user = new UserDTO(1L, "testUser", "test@example.com", "encodedPassword");
+        Map<String, String> request = Map.of("username", "testUser", "password",
+                "password123");
+        UserDTO user = new UserDTO(1L, "testUser", "test@example.com",
+                "encodedPassword");
         when(userClient.getUserByUsername("testUser")).thenReturn(user);
-        when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
+        when(passwordEncoder.matches("password123", "encodedPassword"))
+                .thenReturn(true);
         when(jwtUtil.generateToken("testUser")).thenReturn("jwtToken");
 
         Map<String, String> response = authController.login(request);
@@ -63,10 +64,13 @@ class AuthControllerTest {
 
     @Test
     void testLogin_InvalidCredentials() {
-        Map<String, String> request = Map.of("username", "testUser", "password", "wrongPassword");
-        UserDTO user = new UserDTO(1L, "testUser", "test@example.com", "encodedPassword");
+        Map<String, String> request = Map.of("username", "testUser",
+                "password", "wrongPassword");
+        UserDTO user = new UserDTO(1L, "testUser", "test@example.com",
+                "encodedPassword");
         when(userClient.getUserByUsername("testUser")).thenReturn(user);
-        when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
+        when(passwordEncoder.matches("wrongPassword", "encodedPassword"))
+                .thenReturn(false);
 
         Exception exception = assertThrows(RuntimeException.class, () -> authController.login(request));
         assertEquals("Invalid username or password", exception.getMessage());
@@ -74,7 +78,8 @@ class AuthControllerTest {
 
     @Test
     void testLogin_UserNotFound() {
-        Map<String, String> request = Map.of("username", "unknownUser", "password", "password123");
+        Map<String, String> request = Map.of("username", "unknownUser",
+                "password", "password123");
         when(userClient.getUserByUsername("unknownUser")).thenReturn(null);
 
         Exception exception = assertThrows(RuntimeException.class, () -> authController.login(request));
@@ -96,10 +101,9 @@ class AuthControllerTest {
     @Test
     void testValidateToken_Invalid() {
         String token = "Bearer invalidToken";
-        when(jwtUtil.extractUsername("invalidToken")).thenThrow(new RuntimeException("Invalid token"));
-
+        when(jwtUtil.extractUsername("invalidToken"))
+                .thenThrow(new RuntimeException("Invalid token"));
         ResponseEntity<Long> response = authController.validateToken(token);
-
         assertEquals(401, response.getStatusCodeValue());
         assertNull(response.getBody());
     }

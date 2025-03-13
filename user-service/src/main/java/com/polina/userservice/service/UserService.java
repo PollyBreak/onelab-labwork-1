@@ -22,18 +22,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-//    public void saveUser(UserDTO userDTO) {
-//        if (userRepository.findByUsername(userDTO.getUsername()).isPresent()) {
-//            throw new IllegalArgumentException("Username '" + userDTO.getUsername() + "' is already taken!");
-//        }
-//        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
-//            throw new IllegalArgumentException("Email '" + userDTO.getEmail() + "' is already registered!");
-//        }
-//        User user = User.builder()
-//                .username(userDTO.getUsername())
-//                .build();
-//        userRepository.save(user);
-//    }
     public String registerUser(UserDTO userDTO) {
         if (userRepository.findByUsername(userDTO.getUsername()).isPresent()) {
             throw new RuntimeException("Username already taken!");
@@ -54,10 +42,6 @@ public class UserService {
         return new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPassword());
     }
 
-//    public Optional<UserDTO> findUserByUsername(String username) {
-//        return userRepository.findByUsername(username)
-//                .map(user -> new UserDTO(user.getId(), user.getUsername(), user.getEmail(),user.getPassword()));
-//    }
 
     public UserDTO getUserByUsername(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);
