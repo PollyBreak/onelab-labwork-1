@@ -1,6 +1,6 @@
 TOPIC: Recipe Service
 
-REQIEREMENTS IMPLEMENTED:
+REQUIREMENTS IMPLEMENTED:
 1) Implemented user-service, recipe-service, auth-service as separate microservices with REST controllers. Almost all communication is through REST
 2) Kafka used only in once process. When user adds some product to his favourite product, due to kafka background proccess occurs (in user servuce user's favourite products updates -> in recipe service new recommended recipes are found and written in database, so then when user asks recommended tasks through endpoint they are already calculated and just read from database)
 (Extra screenshots are in screenshots folder)
