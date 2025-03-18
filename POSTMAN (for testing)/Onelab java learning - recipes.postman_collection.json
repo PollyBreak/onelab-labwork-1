@@ -199,13 +199,13 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib2IyIiwiaWF0IjoxNzQxODMwNjU4LCJleHAiOjE3NDE4NjY2NTh9.RAVxqd6TDb8FOkAfXn1agZNVewiL_EdDKfMQAVYLHT8",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbm4zIiwiaWF0IjoxNzQyMjg0NTgxLCJleHAiOjE3NDIzMjA1ODF9.l79x2ripADMWjLPBzAteTnp3PS0LKJafhlixmLbMQjI",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"title\":\"bannofii pie\",\r\n    \"description\":\"tasty yummy\",\r\n    \"instructions\":\"take ......\",\r\n    \"authorId\":1,\r\n    \"products\":[\"heavy cream\", \"condensed milk\", \"biscuits\"]\r\n}",
+					"raw": "{\r\n    \"title\": \"Pizza\",\r\n    \"description\": \"Classic pizza\",\r\n    \"instructions\": \"Make fdd\",\r\n    \"authorId\": 1,\r\n    \"cuisine\": \"Italian\",\r\n    \"products\": [\"flour\", \"water\", \"oil\", \"cheese\", \"tomatoes\"]\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -268,7 +268,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\":\"bob2\",\r\n    \"password\":\"testing\"\r\n}",
+					"raw": "{\r\n    \"username\":\"ann3\",\r\n    \"password\":\"testing\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -332,6 +332,213 @@
 						{
 							"key": "token",
 							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib2IyIiwiaWF0IjoxNzQxODI5Mzk1LCJleHAiOjE3NDE4NjUzOTV9.fGz21cD4xf7Sy8gUYzTR_j2tNlzG6jYyxhEINEQ_OsQ"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get recipes with filters",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/recipes?cuisine=Italian&minRating=4.5&products=eggs",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"recipes"
+					],
+					"query": [
+						{
+							"key": "cuisine",
+							"value": "Italian"
+						},
+						{
+							"key": "minRating",
+							"value": "4.5"
+						},
+						{
+							"key": "newerThan2024-03-17T12:30:00",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "products",
+							"value": "eggs"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get recipes by cuisines",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/recipes/cuisines",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"recipes",
+						"cuisines"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get recipes by product count",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/recipes/products/count",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"recipes",
+						"products",
+						"count"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get recipes partitioned by rating",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/recipes/ratings/partition?threshold=4.5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"recipes",
+						"ratings",
+						"partition"
+					],
+					"query": [
+						{
+							"key": "threshold",
+							"value": "4.5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "compare sequiential bs parallel streams",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/recipes/performance/comparison",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"recipes",
+						"performance",
+						"comparison"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Elastic - search by rating,cuisine",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/recipes/search/by-cuisine-rating?minRating=4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"recipes",
+						"search",
+						"by-cuisine-rating"
+					],
+					"query": [
+						{
+							"key": "cuisine",
+							"value": "Italian",
+							"disabled": true
+						},
+						{
+							"key": "minRating",
+							"value": "4"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Elastic search by title",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8082/recipes/search/by-title?title=pie",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"recipes",
+						"search",
+						"by-title"
+					],
+					"query": [
+						{
+							"key": "title",
+							"value": "pie"
 						}
 					]
 				}
