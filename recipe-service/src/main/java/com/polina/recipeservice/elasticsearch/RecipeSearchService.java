@@ -45,8 +45,6 @@ public class RecipeSearchService {
                 .map(hit -> hit.getContent())
                 .collect(Collectors.toList());
     }
-
-   
     public List<RecipeDocument> filterRecipesByCuisineAndRating(String cuisine, Double minRating) {
         Criteria criteria = new Criteria();
         if (cuisine != null) {
@@ -55,7 +53,6 @@ public class RecipeSearchService {
         if (minRating != null) {
             criteria = criteria.and("averageRating").greaterThanEqual(minRating);
         }
-
         CriteriaQuery searchQuery = new CriteriaQuery(criteria);
         SearchHits<RecipeDocument> searchHits = elasticsearchOperations.search(searchQuery,
                 RecipeDocument.class);
