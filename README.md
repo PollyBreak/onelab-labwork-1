@@ -1,6 +1,8 @@
 TOPIC: Recipe Service
 
 REQIEREMENTS IMPLEMENTED TASK 7:
+SCREENSHOTS of demonstrations are in the screenshot directory
+
 1.	Stream API was used inside REST endpoints to process and return filtered data (at least 2 /filter endpoints to get filtered data from Elasticsearch by request param/body by building custom queries (no need to build complicated ones))
 ![image](https://github.com/user-attachments/assets/3f93894d-9f65-4ef2-a301-44057ecab3ba)
 
