@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -28,6 +29,11 @@ public class RecipeDTO {
 
     private List<String> products;
     private double averageRating;
+
+    @NotBlank(message = "Cuisine cannot be blank")
+    private String cuisine;
+
+    private LocalDateTime createdAt;
 
     public RecipeDTO(Long id, String title, String instructions, Long authorId) {
         this.id = id;

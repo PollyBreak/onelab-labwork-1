@@ -9,7 +9,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/recipes")
@@ -43,9 +45,21 @@ public class RecipeController {
         return ResponseEntity.ok("Recipe created successfully");
     }
 
+//    @GetMapping
+//    public ResponseEntity<List<RecipeDTO>> getAllRecipes() {
+//        return ResponseEntity.ok(recipeService.getAllRecipes());
+//    }
+
     @GetMapping
-    public ResponseEntity<List<RecipeDTO>> getAllRecipes() {
-        return ResponseEntity.ok(recipeService.getAllRecipes());
+    public ResponseEntity<List<RecipeDTO>> getRecipes(
+            @RequestParam(required = false) Long authorId,
+            @RequestParam(required = false) String cuisine,
+            @RequestParam(required = false) List<String> products,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) String newerThan) {
+        LocalDateTime dateFilter = (newerThan != null) ? LocalDateTime.parse(newerThan) : null;
+        return ResponseEntity.ok(recipeService.findRecipes(authorId, cuisine, products, minRating,
+                dateFilter));
     }
 
     @GetMapping("/user/{userId}")
@@ -64,6 +78,34 @@ public class RecipeController {
     public ResponseEntity<String> addReview(@PathVariable Long recipeId, @RequestBody ReviewDTO reviewDTO) {
         recipeService.addReview(recipeId, reviewDTO);
         return ResponseEntity.ok("Review added successfully");
+    }
+
+
+    @GetMapping("/cuisines")
+    public ResponseEntity<Map<String, List<RecipeDTO>>> getRecipesGroupedByCuisine() {
+        return ResponseEntity.ok(recipeService.groupRecipesByCuisine());
+    }
+
+    @GetMapping("/products/count")
+    public ResponseEntity<Map<Integer, List<RecipeDTO>>> getRecipesGroupedByProductCount() {
+        return ResponseEntity.ok(recipeService.groupRecipesByProductCount());
+    }
+
+    @GetMapping("/ratings/partition")
+    public ResponseEntity<Map<Boolean, List<RecipeDTO>>> getRecipesPartitionedByRating(@RequestParam double threshold) {
+        return ResponseEntity.ok(recipeService.partitionRecipesByRating(threshold));
+    }
+
+    @GetMapping("/performance/comparison")
+    public ResponseEntity<Map<String, Double>> compareStreamPerformance() {
+        return ResponseEntity.ok(recipeService.compareSequentialVsParallelProcessing());
+    }
+
+
+    @GetMapping("/sync-elasticsearch")
+    public ResponseEntity<String> syncRecipes() {
+        recipeService.syncRecipesToElasticsearch();
+        return ResponseEntity.ok("Recipes successfully synchronized to Elasticsearch.");
     }
 
 

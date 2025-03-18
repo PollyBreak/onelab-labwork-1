@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
-
 
 @Entity
 @Table(name="recipes")
@@ -34,6 +34,9 @@ public class Recipe {
     @NotNull(message = "Author ID is required")
     private Long authorId;
 
+    @NotBlank(message = "Cuisine cannot be blank")
+    private String cuisine;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "recipe_products",
@@ -44,4 +47,7 @@ public class Recipe {
 
     @Column(name = "average_rating", nullable = false)
     private double averageRating = 0.0;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 }
