@@ -12,23 +12,33 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: recipe-service-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-    listener:
-      ack-mode: record
-      missing-topics-fatal: false
-      retry:
-        max-attempts: 5
-        interval: 3000
-    template:
-      default-topic: user-preferences-topic
+  spring:
+    kafka:
+      bootstrap-servers: localhost:9092
+      consumer:
+        group-id: recipe-service-group
+        auto-offset-reset: earliest
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        properties:
+          spring.json.trusted.packages: "*"
+          spring.json.value.default.type: com.polina.reviewservice.dto.ReviewEvent
+      listener:
+        ack-mode: record
+        missing-topics-fatal: false
+        retry:
+          max-attempts: 5
+          interval: 3000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    beans:
+      enabled: true
 
 
 eureka:

@@ -1,6 +1,5 @@
 package com.polina.recipeservice.service;
 
-import com.polina.recipeservice.dto.RecipeDTO;
 import com.polina.recipeservice.entity.Product;
 import com.polina.recipeservice.entity.Recipe;
 import com.polina.recipeservice.entity.UserRecommendation;

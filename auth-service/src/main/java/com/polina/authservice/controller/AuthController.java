@@ -1,72 +1,74 @@
 package com.polina.authservice.controller;
 
-import com.polina.authservice.client.UserClient;
-import com.polina.authservice.dto.UserDTO;
-import com.polina.authservice.security.JwtUtil;
+import com.polina.authservice.dto.*;
+import com.polina.authservice.service.AuthService;
+import org.apache.tomcat.util.http.parser.Authorization;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final UserClient userClient;
-    private final JwtUtil jwtUtil;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    public AuthController(UserClient userClient, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
-        this.userClient = userClient;
-        this.jwtUtil = jwtUtil;
-        this.passwordEncoder = passwordEncoder;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody Map<String, String> request) {
-        String username = request.get("username");
-        String email = request.get("email");
-        String password = request.get("password");
-        UserDTO userDTO = new UserDTO(null, username, email, password);
-        return userClient.registerUser(userDTO);
+    public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest request) {
+        if (request.getUsername() == null || request.getUsername().isBlank()
+            || request.getPassword() == null || request.getPassword().isBlank()) {
+            return ResponseEntity.badRequest().body(
+                    new AuthResponse("Invalid input", "Invalid input", "ERROR"));
+        }
+        AuthResponse response = authService.registerUser(request.getUsername(), request.getPassword(), "USER");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody Map<String, String> request) {
-        String username = request.get("username");
-        String password = request.get("password");
-
-        UserDTO user = userClient.getUserByUsername(username);
-        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
+    public ResponseEntity<String> login(@RequestBody AuthRequest request) {
+        if (request.getUsername() == null || request.getUsername().isBlank() ||
+                request.getPassword() == null || request.getPassword().isBlank()) {
+            return ResponseEntity.badRequest().body("Invalid input");
         }
-
-        String token = jwtUtil.generateToken(username);
-
-        return Map.of("token", token);
+        String token = authService.authenticateUser(request.getUsername(), request.getPassword());
+        return ResponseEntity.ok(token);
     }
-
-//    @GetMapping("/validate")
-//    public ResponseEntity<?> validateToken(@RequestParam String token) {
-//        boolean isValid = jwtUtil.validateToken(token);
-//        if (isValid) {
-//            String username = jwtUtil.extractUsername(token);
-//            return ResponseEntity.ok("Token is valid for user: " + username);
-//        } else {
-//            return ResponseEntity.status(401).body("Invalid or expired token.");
-//        }
-//    }
 
     @GetMapping("/validate")
-    public ResponseEntity<Long> validateToken(@RequestHeader("Authorization") String token) {
-        try {
-            token = token.replace("Bearer ", "");
-            String username = jwtUtil.extractUsername(token);
-            Long userId = userClient.getUserIdByUsername(username);
-            return ResponseEntity.ok(userId);
-        } catch (Exception e) {
-            return ResponseEntity.status(401).build();
+    public ResponseEntity<TokenValidationResponse> validateToken
+            (@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new TokenValidationResponse(false, null, null, null));
         }
+        return ResponseEntity.ok(authService.validateToken(token));
     }
+
+
+    @PutMapping("/password")
+    @PreAuthorize("#request.username == authentication.principal or hasAuthority('ADMIN')")
+    public ResponseEntity<String> changePassword(
+            @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request.getUsername(),
+                request.getOldPassword(), request.getNewPassword());
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("#id == authentication.principal or hasAuthority('ADMIN')")
+    public ResponseEntity<String> deleteUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+                                             @PathVariable Long id) {
+        authService.deleteUser(id);
+        return ResponseEntity.ok("User deleted successfully");
+    }
+
 }

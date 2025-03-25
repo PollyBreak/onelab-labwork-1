@@ -1,7 +1,5 @@
 package com.polina.recipeservice.controller;
 
-import com.polina.recipeservice.dto.RecipeDTO;
-import com.polina.recipeservice.dto.ReviewDTO;
 import com.polina.recipeservice.service.RecipeService;
 import com.polina.recipeservice.service.RecommendationService;
 import org.junit.jupiter.api.BeforeEach;

@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RecipeSearchRepository extends ElasticsearchRepository<RecipeDocument, String> {
+    void deleteByAuthorId(Long authorId);
 }

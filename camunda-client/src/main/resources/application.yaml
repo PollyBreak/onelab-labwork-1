@@ -1,0 +1,12 @@
+spring.datasource.url: jdbc:h2:file:./camunda-h2-database2
+
+camunda.bpm.admin-user:
+  id: admin
+  password: admin
+
+
+camunda.bpm.client:
+  base-url: http://localhost:8088/engine-rest
+
+server:
+  port: 8089

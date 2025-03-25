@@ -1,7 +1,6 @@
 package com.polina.recipeservice.elasticsearch;
 
-import com.polina.recipeservice.elasticsearch.RecipeDocument;
-import com.polina.recipeservice.elasticsearch.RecipeSearchRepository;
+import org.springframework.data.domain.*;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.Criteria;
@@ -9,55 +8,82 @@ import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Service
 public class RecipeSearchService {
-    private final RecipeSearchRepository recipeSearchRepository;
     private final ElasticsearchOperations elasticsearchOperations;
+    private final RecipeSearchRepository recipeSearchRepository;
 
-    public RecipeSearchService(RecipeSearchRepository recipeSearchRepository,
-                               ElasticsearchOperations elasticsearchOperations) {
-        this.recipeSearchRepository = recipeSearchRepository;
+    public RecipeSearchService(ElasticsearchOperations elasticsearchOperations, RecipeSearchRepository recipeSearchRepository) {
         this.elasticsearchOperations = elasticsearchOperations;
+        this.recipeSearchRepository = recipeSearchRepository;
+    }
+
+    public Optional<RecipeDocument> findRecipeById(String recipeId) {
+        return recipeSearchRepository.findById(recipeId);
     }
 
 
-    public void saveRecipe(RecipeDocument recipe) {
-        recipeSearchRepository.save(recipe);
-    }
-
-
-    public void deleteRecipe(String id) {
-        recipeSearchRepository.deleteById(id);
-    }
-
-    public List<RecipeDocument> getAllRecipes() {
-        return (List<RecipeDocument>) recipeSearchRepository.findAll();
-    }
-
-    public List<RecipeDocument> filterRecipesByTitle(String title) {
-        Criteria criteria = new Criteria("title").matches(title);
-        CriteriaQuery searchQuery = new CriteriaQuery(criteria);
-        SearchHits<RecipeDocument> searchHits = elasticsearchOperations.search(searchQuery,
-                RecipeDocument.class);
-        return searchHits.getSearchHits().stream()
-                .map(hit -> hit.getContent())
-                .collect(Collectors.toList());
-    }
-    public List<RecipeDocument> filterRecipesByCuisineAndRating(String cuisine, Double minRating) {
+    public Page<RecipeDocument> searchRecipes(String authorId, String title, String cuisine,
+                                              Double minRating, String description, List<String> products,
+                                              int page, int size, String sortBy) {
+        Pageable pageable = getPageable(page, size, sortBy);
         Criteria criteria = new Criteria();
+
+        if (title != null) {
+            criteria = criteria.and("title").matches(title);
+        }
+        if (description != null) {
+            criteria = criteria.and("description").matches(description);
+        }
+        if (authorId != null) {
+            criteria = criteria.and("authorId").is(authorId);
+        }
         if (cuisine != null) {
-            criteria = criteria.and("cuisine").matches(cuisine);
+            criteria = criteria.and("cuisine").is(cuisine);
         }
         if (minRating != null) {
             criteria = criteria.and("averageRating").greaterThanEqual(minRating);
         }
-        CriteriaQuery searchQuery = new CriteriaQuery(criteria);
-        SearchHits<RecipeDocument> searchHits = elasticsearchOperations.search(searchQuery,
-                RecipeDocument.class);
-        return searchHits.getSearchHits().stream()
+
+        if (products != null && !products.isEmpty()) {
+            Criteria productCriteria = new Criteria();
+            for (String product : products) {
+                productCriteria = productCriteria.and(new Criteria("products").matches(product));
+            }
+            criteria = criteria.and(productCriteria);
+        }
+
+        CriteriaQuery searchQuery = new CriteriaQuery(criteria).setPageable(pageable);
+        return executeSearchQuery(searchQuery, pageable);
+    }
+
+    public Map<String, List<RecipeDocument>> groupRecipesByCuisine() {
+        CriteriaQuery searchQuery = new CriteriaQuery(new Criteria());
+        SearchHits<RecipeDocument> searchHits = elasticsearchOperations.search(searchQuery, RecipeDocument.class);
+        List<RecipeDocument> allRecipes = searchHits.getSearchHits().stream()
                 .map(hit -> hit.getContent())
                 .collect(Collectors.toList());
+        return allRecipes.stream().collect(Collectors.groupingBy(RecipeDocument::getCuisine));
+    }
+
+    private Page<RecipeDocument> executeSearchQuery(CriteriaQuery searchQuery, Pageable pageable) {
+        SearchHits<RecipeDocument> searchHits = elasticsearchOperations.search(searchQuery, RecipeDocument.class);
+        List<RecipeDocument> recipes = searchHits.getSearchHits().stream()
+                .map(hit -> hit.getContent())
+                .collect(Collectors.toList());
+        return new PageImpl<>(recipes, pageable, searchHits.getTotalHits());
+    }
+
+    private Pageable getPageable(int page, int size, String sortBy) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "averageRating");
+        if ("newest".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+        return PageRequest.of(page, size, sort);
     }
 }

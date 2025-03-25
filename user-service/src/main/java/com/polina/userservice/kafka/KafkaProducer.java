@@ -16,4 +16,5 @@ public class KafkaProducer {
         String message = "User " + userId + " updated preferences";
         kafkaTemplate.send("user-preferences-topic", message);
     }
+
 }

@@ -20,11 +20,8 @@ public class User {
     @Column(unique = true, nullable = false, length = 20)
     private String username;
 
-    @Column(unique = true, nullable = false)
-    private String email;
-
     @Column(nullable = false)
-    private String password;
+    private boolean active;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_favorite_ingredients", joinColumns = @JoinColumn(name = "user_id"))

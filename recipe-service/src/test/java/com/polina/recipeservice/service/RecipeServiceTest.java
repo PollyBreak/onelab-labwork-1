@@ -1,22 +1,17 @@
 package com.polina.recipeservice.service;
 
 import com.polina.recipeservice.client.UserClient;
-import com.polina.recipeservice.dto.RecipeDTO;
-import com.polina.recipeservice.dto.ReviewDTO;
 import com.polina.recipeservice.elasticsearch.RecipeDocument;
 import com.polina.recipeservice.elasticsearch.RecipeSearchRepository;
 import com.polina.recipeservice.entity.Product;
 import com.polina.recipeservice.entity.Recipe;
-import com.polina.recipeservice.entity.Review;
 import com.polina.recipeservice.repository.ProductRepository;
 import com.polina.recipeservice.repository.RecipeRepository;
-import com.polina.recipeservice.repository.ReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 

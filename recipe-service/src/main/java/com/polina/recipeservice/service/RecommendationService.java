@@ -1,7 +1,8 @@
 package com.polina.recipeservice.service;
 
-import com.polina.recipeservice.dto.RecipeDTO;
+import com.polina.recipeservice.entity.Recipe;
 import com.polina.recipeservice.repository.UserRecommendationRepository;
+import com.polina.dto.RecipeDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public class RecommendationService {
                 .orElse(List.of());
     }
 
-    private RecipeDTO convertToDTO(com.polina.recipeservice.entity.Recipe recipe) {
+    private RecipeDTO convertToDTO(Recipe recipe) {
         return RecipeDTO.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())

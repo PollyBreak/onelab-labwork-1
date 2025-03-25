@@ -1,7 +1,6 @@
 package com.polina.authservice.controller;
 
 import com.polina.authservice.client.UserClient;
-import com.polina.authservice.dto.UserDTO;
 import com.polina.authservice.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -79,7 +79,7 @@ class UserPreferencesServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         UserPreferencesDTO result = userPreferencesService.getUserPreferences(1L);
         assertEquals(1L, result.getUserId());
-        assertEquals(2, result.getFavoriteIngredients().size());
+        assertEquals(2, result.getIngredients().size());
     }
 
     @Test

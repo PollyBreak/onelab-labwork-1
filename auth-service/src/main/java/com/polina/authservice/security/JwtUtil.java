@@ -1,5 +1,6 @@
 package com.polina.authservice.security;
 
+import com.polina.authservice.dto.TokenValidationResponse;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
@@ -9,47 +10,45 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
+    private final String secret = "verysecretkeyilove8dnd888games99weareelves3333";
+    private final long jwtExpiration = 86400000;
 
-    private static final String SECRET_KEY = "ilove9999dnd1111----fsfsfsfs-vpppppppppp-ffffffffffffffcvxssdsd";
-
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
-    }
-
-    public String generateToken(String username) {
+    public String generateToken(Long userId, String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("userId", userId)
+                .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
 
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (ExpiredJwtException e) {
-            System.out.println("Token expired");
-        } catch (MalformedJwtException e) {
-            System.out.println("Invalid token format");
-        } catch (SignatureException e) {
-            System.out.println("Invalid token signature");
-        } catch (Exception e) {
-            System.out.println("Invalid token");
-        }
-        return false;
-    }
 
     public String extractUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public Claims extractClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(secret)
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
+    }
+
+    public TokenValidationResponse validateToken(String token) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            return new TokenValidationResponse(false, null, null, null);
+        }
+        token = token.substring(7);
+        try {
+            Claims claims = extractClaims(token);
+            Long userId = claims.get("userId", Long.class);
+            String username = claims.getSubject();
+            String role = claims.get("role", String.class);
+            return new TokenValidationResponse(true, userId, username, role);
+        } catch (Exception e) {
+            return new TokenValidationResponse(false, null, null, null);
+        }
     }
 }
