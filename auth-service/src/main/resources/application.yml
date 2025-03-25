@@ -1,0 +1,22 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auth_credentials_db
+    username: postgres
+    password: 222316pb
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  eureka:
+    client:
+      service-url:
+        defaultZone: http://localhost:8761/eureka/
+    instance:
+      prefer-ip-address: true

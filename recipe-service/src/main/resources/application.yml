@@ -1,0 +1,47 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: recipe-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/recipes_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: bestuser
+    password: bestuser
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  spring:
+    kafka:
+      bootstrap-servers: localhost:9092
+      consumer:
+        group-id: recipe-service-group
+        auto-offset-reset: earliest
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        properties:
+          spring.json.trusted.packages: "*"
+          spring.json.value.default.type: com.polina.reviewservice.dto.ReviewEvent
+      listener:
+        ack-mode: record
+        missing-topics-fatal: false
+        retry:
+          max-attempts: 5
+          interval: 3000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    beans:
+      enabled: true
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

@@ -1,0 +1,75 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userService
+                fallbackUri: forward:/fallback/user
+
+        - id: recipe-service
+          uri: lb://RECIPE-SERVICE
+          predicates:
+            - Path=/recipes/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: recipeService
+                fallbackUri: forward:/fallback/recipe
+
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authService
+                fallbackUri: forward:/fallback/auth
+
+        - id: reviews-service
+          uri: lb://REVIEW-SERVICE
+          predicates:
+            - Path=/reviews/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: reviewsService
+                fallbackUri: forward:/fallback/reviews
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        minimumNumberOfCalls: 5
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,circuitbreakers
