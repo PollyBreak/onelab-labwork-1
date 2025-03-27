@@ -1,7 +1,6 @@
 package com.polina.authservice.security;
 
-import com.polina.authservice.dto.TokenValidationResponse;
-import com.polina.authservice.service.AuthService;
+import com.polina.dto.TokenValidationResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

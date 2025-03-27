@@ -1,20 +1,23 @@
 package com.polina.userservice.service;
 
-import com.polina.userservice.dto.UserDTO;
+import com.polina.dto.AuthRequest;
+import com.polina.dto.UserDTO;
+import com.polina.userservice.client.AuthClient;
 import com.polina.userservice.entity.User;
 import com.polina.userservice.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,50 +27,51 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private PasswordEncoder passwordEncoder;
-    private User mockUser;
+    private AuthClient authClient;
+    @Mock
+    private KafkaTemplate<String, Long> kafkaTemplate;
 
-    @BeforeEach
-    void setUp() {
-        mockUser = new User();
-        mockUser.setId(1L);
-        mockUser.setUsername("testUser");
-        mockUser.setEmail("test@example.com");
-        mockUser.setPassword("encodedPassword");
+    @Test
+    void registerUser_ShouldRegisterSuccessfully_WhenUsernameIsUnique() {
+        AuthRequest request = AuthRequest.builder()
+                .username("testUser")
+                .password("password")
+                .build();
+        when(userRepository.findByUsername("testUser")).thenReturn(Optional.empty());
+        String result = userService.registerUser(request);
+        verify(authClient).register(any(AuthRequest.class));
+        verify(userRepository).save(any(User.class));
+        assertEquals("User registered successfully!", result);
     }
 
     @Test
-    void testRegisterUser_Success() {
-        UserDTO userDTO = new UserDTO(1L, "testUser",
-                "test@example.com", "password123");
-        when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(userDTO.getPassword())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(mockUser);
-
-        String response = userService.registerUser(userDTO);
-        assertEquals("User registered successfully!", response);
-    }
-
-    @Test
-    void testRegisterUser_UsernameTaken() {
-        UserDTO userDTO = new UserDTO(1L, "testUser",
-                "test@example.com", "password123");
-        when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.of(mockUser));
-        Exception exception = assertThrows(RuntimeException.class,
-                () -> userService.registerUser(userDTO));
+    void registerUser_ShouldThrowException_WhenUsernameAlreadyExists() {
+        AuthRequest request = AuthRequest.builder()
+                .username("existingUser")
+                .password("password")
+                .build();
+        when(userRepository.findByUsername("existingUser")).thenReturn(Optional.of(new User()));
+        Exception exception = assertThrows(RuntimeException.class, ()
+                -> userService.registerUser(request));
         assertEquals("Username already taken!", exception.getMessage());
     }
 
     @Test
-    void testFindUserById_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+    void findUserById_ShouldReturnUserDTO_WhenUserExists() {
+        User user = User.builder()
+                .id(1L)
+                .username("testUser")
+                .favoriteIngredients(List.of("Tomato", "Cheese"))
+                .build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         UserDTO result = userService.findUserById(1L);
-        assertEquals(mockUser.getId(), result.getId());
-        assertEquals(mockUser.getUsername(), result.getUsername());
+        assertEquals(1L, result.getId());
+        assertEquals("testUser", result.getUsername());
+        assertEquals(List.of("Tomato", "Cheese"), result.getFavouriteIngredients());
     }
 
     @Test
-    void testFindUserById_NotFound() {
+    void findUserById_ShouldThrowException_WhenUserDoesNotExist() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
         Exception exception = assertThrows(IllegalArgumentException.class,
                 () -> userService.findUserById(99L));
@@ -75,54 +79,37 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetUserByUsername_Success() {
-        when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-        UserDTO result = userService.getUserByUsername("testUser");
-        assertEquals(mockUser.getUsername(), result.getUsername());
-    }
-
-    @Test
-    void testGetUserByUsername_NotFound() {
-        when(userRepository.findByUsername("unknownUser")).thenReturn(Optional.empty());
-        Exception exception = assertThrows(RuntimeException.class,
-                () -> userService.getUserByUsername("unknownUser"));
-        assertEquals("User not found", exception.getMessage());
-    }
-
-    @Test
-    void testGetAllUsers() {
-        when(userRepository.findAll()).thenReturn(List.of(mockUser));
+    void getAllUsers_ShouldReturnListOfUserDTOs() {
+        List<User> users = List.of(
+                User.builder().id(1L).username("Alice").favoriteIngredients(List.of("Milk", "Sugar")).build(),
+                User.builder().id(2L).username("Bob").favoriteIngredients(List.of("Flour", "Eggs")).build()
+        );
+        when(userRepository.findAll()).thenReturn(users);
         List<UserDTO> result = userService.getAllUsers();
-        assertEquals(1, result.size());
-        assertEquals("testUser", result.get(0).getUsername());
+        assertEquals(2, result.size());
+        assertEquals("Alice", result.get(0).getUsername());
+        assertEquals("Bob", result.get(1).getUsername());
     }
 
     @Test
-    void testDeleteUser_Success() {
-        when(userRepository.existsById(1L)).thenReturn(true);
-        doNothing().when(userRepository).deleteById(1L);
-        assertDoesNotThrow(() -> userService.deleteUser(1L));
+    void deleteUser_ShouldDeleteUser_WhenUserExists() {
+        Long userId = 10L;
+        String token = "Bearer token123";
+        when(userRepository.existsById(userId)).thenReturn(true);
+        userService.deleteUser(userId, token);
+        verify(authClient).deleteUser(token, userId);
+        verify(userRepository).deleteById(userId);
+        verify(kafkaTemplate).send("user-deleted-topic", userId);
     }
 
     @Test
-    void testDeleteUser_NotFound() {
-        when(userRepository.existsById(99L)).thenReturn(false);
+    void deleteUser_ShouldThrowException_WhenUserDoesNotExist() {
+        when(userRepository.existsById(50L)).thenReturn(false);
         Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> userService.deleteUser(99L));
-        assertEquals("User with ID 99 does not exist.", exception.getMessage());
-    }
-
-    @Test
-    void testGetUserIdByUsername_Success() {
-        when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
-        Long userId = userService.getUserIdByUsername("testUser");
-        assertEquals(1L, userId);
-    }
-
-    @Test
-    void testGetUserIdByUsername_NotFound() {
-        when(userRepository.findByUsername("unknownUser")).thenReturn(Optional.empty());
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.getUserIdByUsername("unknownUser"));
-        assertEquals("User not found", exception.getMessage());
+                () -> userService.deleteUser(50L, "Bearer token"));
+        assertEquals("User with ID 50 does not exist.", exception.getMessage());
+        verify(authClient, never()).deleteUser(anyString(), anyLong());
+        verify(userRepository, never()).deleteById(anyLong());
+        verify(kafkaTemplate, never()).send(anyString(), anyLong());
     }
 }

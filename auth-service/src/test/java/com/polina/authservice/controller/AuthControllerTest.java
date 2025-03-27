@@ -1,109 +1,104 @@
 package com.polina.authservice.controller;
 
-import com.polina.authservice.client.UserClient;
-import com.polina.authservice.security.JwtUtil;
+import com.polina.authservice.service.AuthService;
+import com.polina.dto.AuthRequest;
+import com.polina.dto.AuthResponse;
+import com.polina.dto.ChangePasswordRequest;
+import com.polina.dto.TokenValidationResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
+    @Mock
+    private AuthService authService;
     @InjectMocks
     private AuthController authController;
-    @Mock
-    private UserClient userClient;
-    @Mock
-    private JwtUtil jwtUtil;
-    @Mock
-    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
-        authController = new AuthController(userClient, jwtUtil, passwordEncoder);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testRegister() {
-        Map<String, String> request = Map.of("username", "testUser",
-                "email", "test@example.com", "password", "password123");
-        UserDTO userDTO = new UserDTO(null, "testUser", "test@example.com",
-                "password123");
-        when(userClient.registerUser(userDTO)).thenReturn("User registered successfully");
-
-        String response = authController.register(request);
-        assertEquals("User registered successfully", response);
+    void register_Success() {
+        AuthRequest request = new AuthRequest("testUser", "password");
+        AuthResponse mockResponse = new AuthResponse("testUser", "password", "USER");
+        when(authService.registerUser(request.getUsername(), request.getPassword(), "USER"))
+                .thenReturn(mockResponse);
+        ResponseEntity<AuthResponse> response = authController.register(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("testUser", response.getBody().getUsername());
     }
 
     @Test
-    void testLogin_Success() {
-        Map<String, String> request = Map.of("username", "testUser", "password",
-                "password123");
-        UserDTO user = new UserDTO(1L, "testUser", "test@example.com",
-                "encodedPassword");
-        when(userClient.getUserByUsername("testUser")).thenReturn(user);
-        when(passwordEncoder.matches("password123", "encodedPassword"))
-                .thenReturn(true);
-        when(jwtUtil.generateToken("testUser")).thenReturn("jwtToken");
-
-        Map<String, String> response = authController.login(request);
-
-        assertNotNull(response);
-        assertEquals("jwtToken", response.get("token"));
+    void register_Failure_InvalidInput() {
+        AuthRequest request = new AuthRequest("", "password");
+        ResponseEntity<AuthResponse> response = authController.register(request);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Invalid input", response.getBody().getUsername());
     }
 
     @Test
-    void testLogin_InvalidCredentials() {
-        Map<String, String> request = Map.of("username", "testUser",
-                "password", "wrongPassword");
-        UserDTO user = new UserDTO(1L, "testUser", "test@example.com",
-                "encodedPassword");
-        when(userClient.getUserByUsername("testUser")).thenReturn(user);
-        when(passwordEncoder.matches("wrongPassword", "encodedPassword"))
-                .thenReturn(false);
-
-        Exception exception = assertThrows(RuntimeException.class, () -> authController.login(request));
-        assertEquals("Invalid username or password", exception.getMessage());
+    void login_Success() {
+        AuthRequest request = new AuthRequest("testUser", "password");
+        when(authService.authenticateUser("testUser", "password"))
+                .thenReturn("mockToken");
+        ResponseEntity<String> response = authController.login(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("mockToken", response.getBody());
     }
 
     @Test
-    void testLogin_UserNotFound() {
-        Map<String, String> request = Map.of("username", "unknownUser",
-                "password", "password123");
-        when(userClient.getUserByUsername("unknownUser")).thenReturn(null);
-
-        Exception exception = assertThrows(RuntimeException.class, () -> authController.login(request));
-        assertEquals("Invalid username or password", exception.getMessage());
+    void login_Failure_InvalidInput() {
+        AuthRequest request = new AuthRequest("", "password");
+        ResponseEntity<String> response = authController.login(request);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Invalid input", response.getBody());
     }
 
     @Test
-    void testValidateToken_Success() {
+    void validateToken_Success() {
         String token = "Bearer validToken";
-        when(jwtUtil.extractUsername("validToken")).thenReturn("testUser");
-        when(userClient.getUserIdByUsername("testUser")).thenReturn(1L);
-
-        ResponseEntity<Long> response = authController.validateToken(token);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(1L, response.getBody());
+        TokenValidationResponse mockResponse = new TokenValidationResponse
+                (true, 1L, "testUser", "USER");
+        when(authService.validateToken(token)).thenReturn(mockResponse);
+        ResponseEntity<TokenValidationResponse> response = authController.validateToken(token);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isValid());
     }
 
     @Test
-    void testValidateToken_Invalid() {
-        String token = "Bearer invalidToken";
-        when(jwtUtil.extractUsername("invalidToken"))
-                .thenThrow(new RuntimeException("Invalid token"));
-        ResponseEntity<Long> response = authController.validateToken(token);
-        assertEquals(401, response.getStatusCodeValue());
-        assertNull(response.getBody());
+    void validateToken_Failure_EmptyToken() {
+        ResponseEntity<TokenValidationResponse> response = authController.validateToken("");
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertFalse(response.getBody().isValid());
+    }
+
+    @Test
+    void changePassword_Success() {
+        ChangePasswordRequest request = new ChangePasswordRequest
+                ("testUser", "oldPass", "newPass");
+        ResponseEntity<String> response = authController.changePassword(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Password changed successfully", response.getBody());
+        verify(authService, times(1))
+                .changePassword(request.getUsername(), request.getOldPassword(), request.getNewPassword());
+    }
+
+    @Test
+    void deleteUser_Success() {
+        ResponseEntity<String> response = authController
+                .deleteUser("Bearer validToken", 1L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("User deleted successfully", response.getBody());
+        verify(authService, times(1)).deleteUser(1L);
     }
 }

@@ -33,31 +33,22 @@ public class RecipeSearchService {
                                               int page, int size, String sortBy) {
         Pageable pageable = getPageable(page, size, sortBy);
         Criteria criteria = new Criteria();
-
         if (title != null) {
-            criteria = criteria.and("title").matches(title);
-        }
+            criteria = criteria.and("title").matches(title);}
         if (description != null) {
-            criteria = criteria.and("description").matches(description);
-        }
+            criteria = criteria.and("description").matches(description);}
         if (authorId != null) {
-            criteria = criteria.and("authorId").is(authorId);
-        }
+            criteria = criteria.and("authorId").is(authorId);}
         if (cuisine != null) {
-            criteria = criteria.and("cuisine").is(cuisine);
-        }
+            criteria = criteria.and("cuisine").is(cuisine);}
         if (minRating != null) {
-            criteria = criteria.and("averageRating").greaterThanEqual(minRating);
-        }
-
+            criteria = criteria.and("averageRating").greaterThanEqual(minRating);}
         if (products != null && !products.isEmpty()) {
             Criteria productCriteria = new Criteria();
             for (String product : products) {
-                productCriteria = productCriteria.and(new Criteria("products").matches(product));
-            }
+                productCriteria = productCriteria.and(new Criteria("products").matches(product));}
             criteria = criteria.and(productCriteria);
         }
-
         CriteriaQuery searchQuery = new CriteriaQuery(criteria).setPageable(pageable);
         return executeSearchQuery(searchQuery, pageable);
     }
