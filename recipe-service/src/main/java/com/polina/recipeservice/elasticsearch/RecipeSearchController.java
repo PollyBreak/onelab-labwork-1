@@ -33,9 +33,9 @@ public class RecipeSearchController {
         Page<RecipeDocument> results = recipeSearchService.searchRecipes(
                 authorId, title, cuisine, minRating, description, products, page, size, sortBy
         );
-
         return ResponseEntity.ok(results);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<RecipeDocument> getRecipeById(@PathVariable String id) {

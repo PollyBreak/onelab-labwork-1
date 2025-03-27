@@ -1,11 +1,12 @@
 package com.polina.authservice.service;
 
-import com.polina.authservice.dto.AuthResponse;
-import com.polina.authservice.dto.TokenValidationResponse;
+
 import com.polina.authservice.entity.Role;
 import com.polina.authservice.entity.UserAuth;
 import com.polina.authservice.repository.UserAuthRepository;
 import com.polina.authservice.security.JwtUtil;
+import com.polina.dto.AuthResponse;
+import com.polina.dto.TokenValidationResponse;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

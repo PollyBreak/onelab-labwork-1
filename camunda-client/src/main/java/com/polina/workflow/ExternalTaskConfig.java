@@ -27,7 +27,7 @@ public class ExternalTaskConfig {
             String url = "http://localhost:8081/users/preferences/11";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwb2xpbmEiLCJ1c2VySWQiOjExLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc0MjkwOTUzNCwiZXhwIjoxNzQyOTk1OTM0fQ.1NemViOFaHKfKM5evZNQ-LVajxOj324LIbc_ZDmeZd4");
+            headers.set("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwb2xpbmEiLCJ1c2VySWQiOjExLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc0Mjk5OTMwNywiZXhwIjoxNzQzMDg1NzA3fQ.JS3cPCWExANFVMF8R2k7rysqUzO8qTzLELvWlxjVJVg");
 
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
             ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, Map.class);

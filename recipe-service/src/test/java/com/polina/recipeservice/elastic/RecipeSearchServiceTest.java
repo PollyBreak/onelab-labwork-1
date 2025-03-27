@@ -9,109 +9,81 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RecipeSearchServiceTest {
     @Mock
-    private RecipeSearchRepository recipeSearchRepository;
-    @Mock
     private ElasticsearchOperations elasticsearchOperations;
+    @Mock
+    private RecipeSearchRepository recipeSearchRepository;
     @InjectMocks
     private RecipeSearchService recipeSearchService;
-    private RecipeDocument recipeDocument;
+
+    private RecipeDocument mockRecipe;
 
     @BeforeEach
     void setUp() {
-        recipeDocument = new RecipeDocument();
-        recipeDocument.setId("1");
-        recipeDocument.setTitle("Pasta");
-        recipeDocument.setCuisine("Italian");
-        recipeDocument.setAverageRating(4.5);
+        mockRecipe = new RecipeDocument();
+        mockRecipe.setId("1");
+        mockRecipe.setCuisine("Italian");
     }
 
     @Test
-    void saveRecipe_Success() {
-        recipeSearchService.saveRecipe(recipeDocument);
-        verify(recipeSearchRepository, times(1)).save(recipeDocument);
+    void findRecipeById_Found() {
+        when(recipeSearchRepository.findById("1")).thenReturn(Optional.of(mockRecipe));
+        Optional<RecipeDocument> result = recipeSearchService.findRecipeById("1");
+        assertTrue(result.isPresent());
+        assertEquals("1", result.get().getId());
     }
 
     @Test
-    void deleteRecipe_Success() {
-        recipeSearchService.deleteRecipe("1");
-        verify(recipeSearchRepository, times(1)).deleteById("1");
+    void findRecipeById_NotFound() {
+        when(recipeSearchRepository.findById("1")).thenReturn(Optional.empty());
+        Optional<RecipeDocument> result = recipeSearchService.findRecipeById("1");
+        assertFalse(result.isPresent());
     }
 
     @Test
-    void getAllRecipes_ReturnsList() {
-        when(recipeSearchRepository.findAll()).thenReturn(List.of(recipeDocument));
-        List<RecipeDocument> result = recipeSearchService.getAllRecipes();
-        assertEquals(1, result.size());
-        assertEquals("Pasta", result.get(0).getTitle());
+    void searchRecipes_NoFilters() {
+        Page<RecipeDocument> expectedPage = new PageImpl<>(List.of(mockRecipe));
+        when(elasticsearchOperations.search(any(CriteriaQuery.class), eq(RecipeDocument.class)))
+                .thenReturn(mock(SearchHits.class));
+        Page<RecipeDocument> result = recipeSearchService.searchRecipes(null, null, null, null, null, null, 0, 10, "rating");
+        assertNotNull(result);
     }
 
     @Test
-    void filterRecipesByTitle_ReturnsMatchingRecipes() {
-        SearchHit<RecipeDocument> searchHit = mock(SearchHit.class);
-        when(searchHit.getContent()).thenReturn(recipeDocument);
+    void searchRecipes_WithFilters() {
+        Page<RecipeDocument> expectedPage = new PageImpl<>(List.of(mockRecipe));
+        when(elasticsearchOperations.search(any(CriteriaQuery.class), eq(RecipeDocument.class)))
+                .thenReturn(mock(SearchHits.class));
+        Page<RecipeDocument> result = recipeSearchService
+                .searchRecipes("1", "Pasta", "Italian", 4.0, "Delicious", List.of("Tomato"), 0, 10, "newest");
+        assertNotNull(result);
+    }
+
+    @Test
+    void groupRecipesByCuisine() {
         SearchHits<RecipeDocument> searchHits = mock(SearchHits.class);
-        when(searchHits.getSearchHits()).thenReturn(List.of(searchHit));
+        when(searchHits.getSearchHits()).thenReturn(Collections.emptyList());
         when(elasticsearchOperations.search(any(CriteriaQuery.class), eq(RecipeDocument.class)))
                 .thenReturn(searchHits);
-        List<RecipeDocument> result = recipeSearchService.filterRecipesByTitle("Pasta");
-        assertEquals(1, result.size());
-        assertEquals("Pasta", result.get(0).getTitle());
-    }
-
-    @Test
-    void filterRecipesByCuisineAndRating_WithCuisineOnly() {
-        SearchHit<RecipeDocument> searchHit = mock(SearchHit.class);
-        when(searchHit.getContent()).thenReturn(recipeDocument);
-        SearchHits<RecipeDocument> searchHits = mock(SearchHits.class);
-        when(searchHits.getSearchHits()).thenReturn(List.of(searchHit));
-        when(elasticsearchOperations.search(any(CriteriaQuery.class), eq(RecipeDocument.class)))
-                .thenReturn(searchHits);
-        List<RecipeDocument> result = recipeSearchService
-                .filterRecipesByCuisineAndRating("Italian", null);
-        assertEquals(1, result.size());
-        assertEquals("Italian", result.get(0).getCuisine());
-    }
-
-    @Test
-    void filterRecipesByCuisineAndRating_WithMinRatingOnly() {
-        SearchHit<RecipeDocument> searchHit = mock(SearchHit.class);
-        when(searchHit.getContent()).thenReturn(recipeDocument);
-        SearchHits<RecipeDocument> searchHits = mock(SearchHits.class);
-        when(searchHits.getSearchHits()).thenReturn(List.of(searchHit));
-        when(elasticsearchOperations.search(any(CriteriaQuery.class), eq(RecipeDocument.class)))
-                .thenReturn(searchHits);
-        List<RecipeDocument> result = recipeSearchService
-                .filterRecipesByCuisineAndRating(null, 4.0);
-        assertEquals(1, result.size());
-        assertTrue(result.get(0).getAverageRating() >= 4.0);
-    }
-
-    @Test
-    void filterRecipesByCuisineAndRating_WithBothFilters() {
-        SearchHit<RecipeDocument> searchHit = mock(SearchHit.class);
-        when(searchHit.getContent()).thenReturn(recipeDocument);
-        SearchHits<RecipeDocument> searchHits = mock(SearchHits.class);
-        when(searchHits.getSearchHits()).thenReturn(List.of(searchHit));
-        when(elasticsearchOperations.search(any(CriteriaQuery.class), eq(RecipeDocument.class)))
-                .thenReturn(searchHits);
-        List<RecipeDocument> result = recipeSearchService
-                .filterRecipesByCuisineAndRating("Italian", 4.0);
-        assertEquals(1, result.size());
-        assertEquals("Italian", result.get(0).getCuisine());
-        assertTrue(result.get(0).getAverageRating() >= 4.0);
+        Map<String, List<RecipeDocument>> result = recipeSearchService.groupRecipesByCuisine();
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 }

@@ -1,6 +1,7 @@
 package com.polina.apigateway;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,7 +11,12 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 public class CircuitBreakerController {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public CircuitBreakerController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     private static final String USER_SERVICE = "userService";
 
@@ -25,3 +31,5 @@ public class CircuitBreakerController {
         return ResponseEntity.ok("User service is temporarily unavailable. Please try again later.");
     }
 }
+
+

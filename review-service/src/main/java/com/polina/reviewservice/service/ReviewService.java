@@ -67,7 +67,7 @@ public class ReviewService {
         return reviewRepository.findByRecipeId(recipeId);
     }
 
-    private boolean checkUserExists(Long userId) {
+    public boolean checkUserExists(Long userId) {
         try {
             ResponseEntity<String> response = userClient.getUserById(userId);
             return response.getBody() != null;
@@ -76,7 +76,7 @@ public class ReviewService {
         }
     }
 
-    private boolean checkRecipeExists(Long recipeId) {
+    public boolean checkRecipeExists(Long recipeId) {
         try {
             ResponseEntity<RecipeDTO> response = recipeClient.getRecipeById(recipeId);
             return response.getBody() != null;
@@ -85,7 +85,7 @@ public class ReviewService {
         }
     }
 
-    private double calculateAverageRating(Long recipeId) {
+    public double calculateAverageRating(Long recipeId) {
         List<Review> reviews = reviewRepository.findByRecipeId(recipeId);
         return reviews.isEmpty() ? 0.0 :
                 reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);

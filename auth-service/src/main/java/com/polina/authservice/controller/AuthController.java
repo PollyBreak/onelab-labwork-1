@@ -1,13 +1,14 @@
 package com.polina.authservice.controller;
 
-import com.polina.authservice.dto.*;
 import com.polina.authservice.service.AuthService;
-import org.apache.tomcat.util.http.parser.Authorization;
+import com.polina.dto.AuthRequest;
+import com.polina.dto.AuthResponse;
+import com.polina.dto.ChangePasswordRequest;
+import com.polina.dto.TokenValidationResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 

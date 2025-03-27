@@ -1,6 +1,6 @@
 package com.polina.authservice.security;
 
-import com.polina.authservice.dto.TokenValidationResponse;
+import com.polina.dto.TokenValidationResponse;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;

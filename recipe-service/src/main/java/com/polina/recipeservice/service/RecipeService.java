@@ -41,29 +41,20 @@ public class RecipeService {
                         productRepository.findByName(name) :
                         productRepository.save(new Product(null, name)))
                 .collect(Collectors.toList());
-
         Recipe recipe = Recipe.builder()
-                .title(recipeDTO.getTitle())
-                .description(recipeDTO.getDescription())
-                .instructions(recipeDTO.getInstructions())
-                .authorId(recipeDTO.getAuthorId())
-                .cuisine(recipeDTO.getCuisine())
-                .products(products)
+                .title(recipeDTO.getTitle()).description(recipeDTO.getDescription())
+                .instructions(recipeDTO.getInstructions()).authorId(recipeDTO.getAuthorId())
+                .cuisine(recipeDTO.getCuisine()).products(products)
                 .createdAt(LocalDateTime.now())
                 .build();
         recipeRepository.save(recipe);
-
         RecipeDocument recipeDocument = RecipeDocument.builder()
                 .id(recipe.getId().toString())
                 .authorId(recipe.getAuthorId().toString())
-                .title(recipe.getTitle())
-                .description(recipe.getDescription())
-                .cuisine(recipe.getCuisine())
-                .products(recipeDTO.getProducts())
-                .averageRating(recipe.getAverageRating())
+                .title(recipe.getTitle()).description(recipe.getDescription()).cuisine(recipe.getCuisine())
+                .products(recipeDTO.getProducts()).averageRating(recipe.getAverageRating())
                 .createdAt(recipe.getCreatedAt())
                 .build();
-
         recipeSearchRepository.save(recipeDocument);
         updateUserRecommendations(recipe);
     }
@@ -169,7 +160,7 @@ public class RecipeService {
         recipeSearchRepository.saveAll(recipeDocuments);
     }
 
-    private void updateUserRecommendations(Recipe recipe) {
+    public void updateUserRecommendations(Recipe recipe) {
         userRecommendationRepository.findAll().forEach(recommendation -> {
             if (recipe.getProducts().stream().anyMatch(product ->
                     recommendation.getRecommendedRecipes().stream()

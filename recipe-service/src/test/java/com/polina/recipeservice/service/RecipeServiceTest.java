@@ -1,193 +1,181 @@
 package com.polina.recipeservice.service;
 
-import com.polina.recipeservice.client.UserClient;
+
+import com.polina.dto.RecipeDTO;
 import com.polina.recipeservice.elasticsearch.RecipeDocument;
 import com.polina.recipeservice.elasticsearch.RecipeSearchRepository;
 import com.polina.recipeservice.entity.Product;
 import com.polina.recipeservice.entity.Recipe;
+import com.polina.recipeservice.entity.UserRecommendation;
 import com.polina.recipeservice.repository.ProductRepository;
 import com.polina.recipeservice.repository.RecipeRepository;
+import com.polina.recipeservice.repository.UserRecommendationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
+import org.mockito.*;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class RecipeServiceTest {
-
     @Mock
     private RecipeRepository recipeRepository;
-
     @Mock
     private ProductRepository productRepository;
-
-    @Mock
-    private ReviewRepository reviewRepository;
-
     @Mock
     private RecipeSearchRepository recipeSearchRepository;
-
     @Mock
-    private UserClient userClient;
+    private UserRecommendationRepository userRecommendationRepository;
 
     @InjectMocks
     private RecipeService recipeService;
 
-    private Recipe recipe;
-    private RecipeDTO recipeDTO;
-    private Product product;
-    private Review review;
-    private ReviewDTO reviewDTO;
-
     @BeforeEach
     void setUp() {
-        product = new Product(1L, "Tomato");
-        recipe = new Recipe(1L, "Pasta", "Tasty pasta", "Boil water", 100L, "Italian",
-                List.of(product), 5.0, LocalDateTime.now());
-
-        recipeDTO = new RecipeDTO(1L, "Pasta", "Tasty pasta", "Boil water", 100L,
-                List.of("Tomato"), 5.0, "Italian", LocalDateTime.now());
-        review = new Review(1L, 1L, 100L, 5, "Delicious!");
-        reviewDTO = new ReviewDTO(1L, 100L, 5, "Delicious!");
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     void createRecipe_Success() {
-        when(userClient.checkUserExists(anyLong())).thenReturn(ResponseEntity.ok().build());
-        when(productRepository.findByName(anyString())).thenReturn(null);
-        when(productRepository.save(any(Product.class))).thenReturn(product);
+        RecipeDTO recipeDTO = RecipeDTO.builder()
+                .title("Test Recipe")
+                .description("Test Description")
+                .instructions("Test Instructions")
+                .authorId(1L)
+                .products(List.of("Tomato", "Cheese"))
+                .build();
+        Recipe savedRecipe = Recipe.builder()
+                .id(1L)
+                .title(recipeDTO.getTitle())
+                .description(recipeDTO.getDescription())
+                .instructions(recipeDTO.getInstructions())
+                .authorId(recipeDTO.getAuthorId())
+                .products(List.of(new Product(1L, "Tomato"), new Product(2L, "Cheese")))
+                .createdAt(LocalDateTime.now())
+                .build();
 
         when(recipeRepository.save(any(Recipe.class))).thenAnswer(invocation -> {
-            Recipe savedRecipe = invocation.getArgument(0);
-            savedRecipe.setId(1L);
-            return savedRecipe;
+            Recipe recipe = invocation.getArgument(0);
+            recipe.setId(1L);
+            return recipe;
         });
         recipeService.createRecipe(recipeDTO);
-
-        verify(userClient, times(1)).checkUserExists(100L);
         verify(recipeRepository, times(1)).save(any(Recipe.class));
         verify(recipeSearchRepository, times(1)).save(any(RecipeDocument.class));
     }
 
+
+
     @Test
-    void createRecipe_UserNotFound_ThrowsException() {
-        doThrow(new RuntimeException("User not found")).when(userClient).checkUserExists(100L);
+    void updateRecipe_RecipeNotFound_ThrowsException() {
+        Long recipeId = 1L;
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> recipeService.createRecipe(recipeDTO));
+        RecipeDTO updatedRecipeDTO = new RecipeDTO();
+        updatedRecipeDTO.setTitle("Updated Recipe");
 
-        assertEquals("User with ID 100 does not exist.", exception.getMessage());
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            recipeService.updateRecipe(recipeId, updatedRecipeDTO);
+        });
+
+        assertEquals("Recipe with ID " + recipeId + " not found", exception.getMessage());
     }
 
     @Test
-    void getAllRecipes_ReturnsList() {
+    void deleteRecipe_Success() {
+        Long recipeId = 1L;
+        Recipe recipe = new Recipe();
+        recipe.setId(recipeId);
+
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+
+        recipeService.deleteRecipe(recipeId);
+
+        verify(recipeRepository, times(1)).delete(recipe);
+        verify(recipeSearchRepository, times(1)).deleteById(recipeId.toString());
+    }
+
+    @Test
+    void deleteRecipe_RecipeNotFound_ThrowsException() {
+        Long recipeId = 1L;
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            recipeService.deleteRecipe(recipeId);
+        });
+
+        assertEquals("Recipe with ID " + recipeId + " not found", exception.getMessage());
+    }
+
+    @Test
+    void deleteRecipesByAuthor_Success() {
+        Long authorId = 1L;
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+
+        when(recipeRepository.findByAuthorId(authorId)).thenReturn(List.of(recipe));
+
+        recipeService.deleteRecipesByAuthor(authorId);
+
+        verify(recipeRepository, times(1)).deleteByAuthorId(authorId);
+        verify(recipeSearchRepository, times(1)).deleteByAuthorId(authorId);
+    }
+
+    @Test
+    void syncRecipesToElasticsearch_Success() {
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+        recipe.setAuthorId(1L);
+        recipe.setProducts(new ArrayList<>());
         when(recipeRepository.findAll()).thenReturn(List.of(recipe));
-
-        List<RecipeDTO> result = recipeService.getAllRecipes();
-
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.size());
-        assertEquals("Pasta", result.get(0).getTitle());
-    }
-
-    @Test
-    void getRecipesByUser_ReturnsList() {
-        when(recipeRepository.findByAuthorId(100L)).thenReturn(List.of(recipe));
-
-        List<RecipeDTO> result = recipeService.getRecipesByUser(100L);
-
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.size());
-        assertEquals("Pasta", result.get(0).getTitle());
-    }
-
-    @Test
-    void addReview_NewReview_Success() {
-        when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
-        when(reviewRepository.findByRecipeIdAndUserId(1L, 100L)).thenReturn(Optional.empty());
-
-        recipeService.addReview(1L, reviewDTO);
-
-        verify(reviewRepository, times(1)).save(any(Review.class));
-        verify(recipeRepository, times(1)).save(any(Recipe.class));
-    }
-
-    @Test
-    void addReview_UpdateExistingReview() {
-        Review existingReview = new Review(1L, 1L, 100L, 4, "Good");
-        when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
-        when(reviewRepository.findByRecipeIdAndUserId(1L, 100L)).thenReturn(Optional.of(existingReview));
-
-        recipeService.addReview(1L, reviewDTO);
-
-        verify(reviewRepository, times(1)).save(any(Review.class));
-    }
-
-    @Test
-    void syncRecipesToElasticsearch() {
-        when(recipeRepository.findAll()).thenReturn(List.of(recipe));
-
         recipeService.syncRecipesToElasticsearch();
-
         verify(recipeSearchRepository, times(1)).saveAll(any());
     }
 
+
+
     @Test
-    void findRecipes_FilteredResults() {
-        when(recipeRepository.findAll()).thenReturn(List.of(recipe));
+    void convertToDTO_Success() {
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+        recipe.setTitle("Pasta");
+        recipe.setDescription("Delicious pasta");
+        recipe.setInstructions("Boil water, cook pasta");
+        recipe.setCuisine("Italian");
+        recipe.setCreatedAt(LocalDateTime.now());
+        recipe.setProducts(List.of(new Product("Pasta"), new Product("Tomato")));
 
-        List<RecipeDTO> result = recipeService.findRecipes(100L, "Italian",
-                List.of("Tomato"), 4.0, LocalDateTime.now().minusDays(1));
+        RecipeDTO dto = recipeService.convertToDTO(recipe);
 
-        assertEquals(1, result.size());
-        assertEquals("Pasta", result.get(0).getTitle());
+        assertEquals(recipe.getId(), dto.getId());
+        assertEquals(recipe.getTitle(), dto.getTitle());
+        assertEquals(recipe.getDescription(), dto.getDescription());
+        assertEquals(recipe.getCuisine(), dto.getCuisine());
+        assertEquals(recipe.getProducts().size(), dto.getProducts().size());
     }
 
     @Test
-    void groupRecipesByCuisine() {
-        when(recipeRepository.findAll()).thenReturn(List.of(recipe));
+    void updateUserRecommendations_Success() {
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+        recipe.setProducts(List.of(new Product("Tomato")));
+        Recipe existingRecommendedRecipe = new Recipe();
+        existingRecommendedRecipe.setId(2L);
+        existingRecommendedRecipe.setProducts(List.of(new Product("Tomato")));
+        UserRecommendation recommendation = new UserRecommendation();
+        recommendation.setRecommendedRecipes(new ArrayList<>(List.of(existingRecommendedRecipe)));
 
-        Map<String, List<RecipeDTO>> result = recipeService.groupRecipesByCuisine();
-
-        assertTrue(result.containsKey("Italian"));
-        assertEquals(1, result.get("Italian").size());
+        when(userRecommendationRepository.findAll()).thenReturn(List.of(recommendation));
+        recipeService.updateUserRecommendations(recipe);
+        verify(userRecommendationRepository, times(1))
+                .save(any(UserRecommendation.class));
     }
 
-    @Test
-    void partitionRecipesByRating() {
-        when(recipeRepository.findAll()).thenReturn(List.of(recipe));
 
-        Map<Boolean, List<RecipeDTO>> result = recipeService.partitionRecipesByRating(4.5);
 
-        assertTrue(result.get(true).contains(recipeService.convertToDTO(recipe)));
-    }
-
-    @Test
-    void groupRecipesByProductCount() {
-        when(recipeRepository.findAll()).thenReturn(List.of(recipe));
-
-        Map<Integer, List<RecipeDTO>> result = recipeService.groupRecipesByProductCount();
-
-        assertTrue(result.containsKey(1));
-        assertEquals(1, result.get(1).size());
-    }
-
-    @Test
-    void compareSequentialVsParallelProcessing() {
-        when(recipeRepository.findAll()).thenReturn(List.of(recipe));
-
-        Map<String, Double> result = recipeService.compareSequentialVsParallelProcessing();
-
-        assertTrue(result.containsKey("Sequential Execution Time (ms)"));
-        assertTrue(result.containsKey("Parallel Execution Time (ms)"));
-    }
 }
